@@ -1,0 +1,1756 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#EDF0F4" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0F1522" media="(prefers-color-scheme: dark)">
+<title>Gradus</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2318223B'/%3E%3Cpath d='M6 25h7v-7h7v-7h6' fill='none' stroke='%23EDF0F4' stroke-width='3' stroke-linejoin='round' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#EDF0F4; --surface:#FFFFFF; --surface-2:#F5F7FA; --ink:#18223B; --ink-2:#47526B; --muted:#76809A; --line:#D5DBE4;
+  --ok:#2C7A50; --ko:#B3362B; --warn:#94650A; --focus:#3A5BA0;
+  --serif:"Newsreader", Georgia, "Times New Roman", serif;
+  --sans:"Manrope", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --mono:ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root{ --paper:#0F1522; --surface:#172033; --surface-2:#1C263B; --ink:#E4E9F2; --ink-2:#B0BACE; --muted:#8490A8; --line:#2B3650;
+    --ok:#5DBB86; --ko:#E57368; --warn:#D9A441; --focus:#8FA8E0; color-scheme:dark; }
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--paper); color:var(--ink); font-family:var(--sans); font-size:16px; line-height:1.5; -webkit-font-smoothing:antialiased; -webkit-tap-highlight-color:transparent}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--focus); outline-offset:2px; border-radius:6px}
+.wrap{max-width:760px; margin:0 auto; padding:0 18px}
+
+header.top{position:sticky; top:0; z-index:10; background:color-mix(in srgb, var(--paper) 90%, transparent); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); padding-top:env(safe-area-inset-top,0px); border-bottom:1px solid var(--line)}
+header.top .wrap{display:flex; align-items:center; justify-content:space-between; height:56px}
+.brand{display:flex; align-items:center; gap:9px; font-family:var(--serif); font-size:25px; font-weight:600; letter-spacing:-.01em; text-decoration:none}
+.brand svg{width:22px; height:22px}
+.sync{font-size:12.5px; color:var(--muted); text-decoration:none; display:flex; align-items:center; gap:6px}
+.sync i{width:7px; height:7px; border-radius:50%; background:var(--muted); display:inline-block}
+.sync.on i{background:var(--ok)}
+
+main{padding:22px 0 calc(110px + env(safe-area-inset-bottom,0px))}
+h1.page{font-family:var(--serif); font-weight:500; font-size:clamp(32px,7.5vw,46px); line-height:1.06; letter-spacing:-.018em; margin:6px 0 10px}
+h2.sec{font-family:var(--serif); font-weight:500; font-size:23px; letter-spacing:-.01em; margin:34px 0 10px}
+.lede{color:var(--ink-2); margin:0 0 10px; max-width:62ch; font-size:16.5px}
+.muted{color:var(--muted)}
+.small{font-size:14px}
+.date{color:var(--muted); font-size:14.5px; margin:0}
+.back{display:inline-flex; align-items:center; gap:4px; color:var(--ink-2); text-decoration:none; font-size:14.5px; font-weight:600}
+.back svg{width:16px; height:16px}
+
+nav.bottom{position:fixed; left:0; right:0; bottom:0; z-index:20; background:var(--surface); border-top:1px solid var(--line); padding-bottom:env(safe-area-inset-bottom,0px)}
+nav.bottom .wrap{display:grid; grid-template-columns:repeat(5,1fr); padding:0 6px}
+nav.bottom a{display:flex; flex-direction:column; align-items:center; gap:3px; padding:9px 0 8px; font-size:11.5px; font-weight:600; color:var(--muted); text-decoration:none}
+nav.bottom a svg{width:22px; height:22px}
+nav.bottom a[aria-current="page"]{color:var(--ink)}
+
+.btn{font:inherit; font-weight:700; font-size:15px; border-radius:10px; border:1px solid var(--ink); background:var(--ink); color:var(--paper); padding:11px 16px; cursor:pointer; text-decoration:none; display:inline-flex; align-items:center; justify-content:center; gap:8px}
+.btn.ghost{background:transparent; color:var(--ink); border-color:var(--line)}
+.btn.danger{background:transparent; color:var(--ko); border-color:color-mix(in srgb, var(--ko) 45%, var(--line))}
+.btn.small{padding:7px 12px; font-size:13.5px; border-radius:8px}
+.btn:disabled{opacity:.45; cursor:default}
+.row{display:flex; gap:10px; flex-wrap:wrap; align-items:center}
+.linkbtn{background:none; border:0; padding:0; font:inherit; color:var(--ink-2); text-decoration:underline; text-underline-offset:3px; cursor:pointer; font-size:14px}
+
+input,textarea,select{font:inherit; font-size:16px; color:var(--ink); background:var(--surface-2); border:1px solid var(--line); border-radius:10px; padding:10px 12px; width:100%}
+textarea{resize:vertical; line-height:1.45}
+label.f{display:block; margin:12px 0}
+label.f > span{display:block; font-size:14px; font-weight:600; color:var(--ink-2); margin-bottom:5px}
+.grid2{display:grid; grid-template-columns:1fr 1fr; gap:10px}
+.check{display:flex; gap:10px; align-items:center; font-size:15px; margin:10px 0}
+.check input{width:20px; height:20px; accent-color:var(--ink)}
+
+.panel{background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:16px 16px}
+.panel + .panel{margin-top:12px}
+
+/* Scale: il segno distintivo */
+.stairs svg{display:block; width:100%; height:auto; color:var(--ink-2); overflow:visible}
+.stairs .fill{transform-box:fill-box; transform-origin:50% 100%; animation:rise .9s cubic-bezier(.2,.75,.25,1) both}
+@keyframes rise{from{transform:scaleY(0)}}
+.stairs-labels{display:grid; margin-top:7px; gap:4px}
+.stairs-labels div{font-size:12.5px; line-height:1.3; color:var(--ink-2)}
+.stairs-labels b{display:block; font-weight:600; color:var(--ink)}
+.stairs.big .stairs-labels div{font-size:13.5px}
+.stairs.big .stairs-labels b{font-family:var(--serif); font-size:18px; font-weight:500}
+
+.area-row{display:block; text-decoration:none; padding:18px 0 20px; border-top:1px solid var(--line)}
+.area-row:last-child{border-bottom:1px solid var(--line)}
+.area-head{display:flex; align-items:baseline; gap:10px; margin-bottom:12px}
+.area-name{font-family:var(--serif); font-size:23px; font-weight:500; letter-spacing:-.01em}
+.area-meta{margin-left:auto; font-size:13px; color:var(--muted)}
+.swatch{width:11px; height:11px; border-radius:3px; background:var(--c); flex:none; transform:translateY(-1px)}
+.area-desc{color:var(--ink-2); font-size:15px; margin:-6px 0 12px}
+
+.sugg{display:flex; align-items:center; gap:14px; text-decoration:none; padding:14px 16px; background:var(--surface); border:1px solid var(--line); border-left:4px solid var(--c); border-radius:4px 12px 12px 4px; margin:10px 0}
+.sugg-t{font-family:var(--serif); font-size:19px; line-height:1.25}
+.sugg-m{font-size:13px; color:var(--muted); margin-top:2px}
+.sugg .go{margin-left:auto; font-weight:700; font-size:14px; white-space:nowrap}
+
+.seg{display:flex; gap:6px; flex-wrap:wrap; margin:18px 0 6px}
+.seg button{font:inherit; font-size:14.5px; font-weight:600; border:1px solid var(--line); background:var(--surface); color:var(--ink-2); border-radius:999px; padding:7px 14px; cursor:pointer; display:inline-flex; align-items:center; gap:6px}
+.seg button[aria-pressed="true"]{background:var(--ink); color:var(--paper); border-color:var(--ink)}
+.seg svg{width:13px; height:13px}
+
+.lrow{display:flex; align-items:center; gap:12px; padding:14px 0; border-bottom:1px solid var(--line); text-decoration:none}
+.lrow.locked{opacity:.5}
+.lrow-t{font-family:var(--serif); font-size:19px; line-height:1.25}
+.lrow-m{display:flex; gap:12px; flex-wrap:wrap; font-size:13px; color:var(--muted); margin-top:3px}
+.badge{margin-left:auto; flex:none; font-size:13px; font-weight:700; padding:4px 9px; border-radius:6px; background:var(--surface-2); border:1px solid var(--line); color:var(--ink-2)}
+.badge.ok{color:var(--ok); border-color:color-mix(in srgb, var(--ok) 40%, var(--line))}
+.badge.low{color:var(--warn); border-color:color-mix(in srgb, var(--warn) 40%, var(--line))}
+.note{font-size:14.5px; color:var(--ink-2); background:var(--surface); border:1px dashed var(--line); border-radius:10px; padding:12px 14px; margin:12px 0}
+
+/* Lezione */
+.lesson-meta{display:flex; gap:14px; flex-wrap:wrap; font-size:14px; color:var(--muted); margin-bottom:6px}
+.teoria{font-family:var(--serif); font-size:19px; line-height:1.62; max-width:66ch}
+.teoria h3{font-size:24px; font-weight:600; line-height:1.2; letter-spacing:-.01em; margin:30px 0 8px}
+.teoria h4{font-size:20px; font-weight:600; margin:22px 0 6px}
+.teoria p{margin:0 0 12px}
+.teoria ul,.teoria ol{margin:0 0 14px; padding-left:22px}
+.teoria li{margin:4px 0}
+.teoria code{font-family:var(--mono); font-size:.8em; background:var(--surface); border:1px solid var(--line); padding:1px 6px; border-radius:5px}
+.teoria p.formula{margin:10px 0 16px}
+.teoria p.formula code{display:inline-block; font-size:.82em; padding:8px 12px; border-left:3px solid var(--c); border-radius:3px 8px 8px 3px}
+.teoria blockquote{margin:20px 0; padding:12px 16px; background:var(--surface); border-left:3px solid var(--c); border-radius:3px 10px 10px 3px; font-size:17.5px; color:var(--ink-2)}
+.tbl{overflow-x:auto; margin:10px 0 16px}
+.teoria table{border-collapse:collapse; font-family:var(--sans); font-size:14.5px; min-width:100%}
+.teoria th,.teoria td{border-bottom:1px solid var(--line); padding:7px 10px; text-align:left; white-space:nowrap}
+.teoria th{font-weight:700; color:var(--ink-2)}
+
+.vocab{width:100%; border-collapse:collapse; font-size:15px}
+.vocab td{padding:8px 6px; border-bottom:1px solid var(--line); vertical-align:top}
+.vocab td:first-child{font-family:var(--serif); font-size:17px; width:44%}
+.vocab .es{display:block; font-size:13.5px; color:var(--muted); font-family:var(--sans)}
+
+.ex{padding:20px 0; border-top:1px solid var(--line)}
+.ex-head{display:flex; align-items:center; gap:10px; margin-bottom:6px}
+.ex-n{font-family:var(--serif); font-size:15px; color:var(--muted)}
+.ex-q{font-size:17px; line-height:1.5; margin:0 0 10px; font-weight:500}
+.mark{font-size:13px; font-weight:700}
+.mark.ok{color:var(--ok)} .mark.ko{color:var(--ko)} .mark.wait{color:var(--warn)}
+.opt{display:block; width:100%; text-align:left; font:inherit; font-size:16px; color:var(--ink); background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:11px 14px; margin:7px 0; cursor:pointer}
+.opt.sel{border-color:var(--ink); box-shadow:inset 0 0 0 1px var(--ink)}
+.opt.good{border-color:var(--ok); background:color-mix(in srgb, var(--ok) 11%, var(--surface)); box-shadow:none}
+.opt.bad{border-color:var(--ko); background:color-mix(in srgb, var(--ko) 10%, var(--surface)); box-shadow:none}
+.opt:disabled{cursor:default; color:var(--ink)}
+.vf{display:grid; grid-template-columns:1fr 1fr; gap:8px}
+.vf .opt{text-align:center; margin:0}
+.num{display:flex; align-items:center; gap:10px; max-width:320px}
+.num .unit{color:var(--ink-2); font-weight:600}
+input.gap{display:inline-block; width:9.5em; padding:4px 8px; margin:0 4px; font-size:16px; border-radius:7px; vertical-align:baseline}
+.spieg{margin:12px 0 0; font-size:15px; color:var(--ink-2); padding-left:12px; border-left:2px solid var(--line)}
+.sol{margin:8px 0 0; font-size:15px}
+.grade{margin-top:12px; display:grid; gap:8px}
+
+.result{margin:28px 0 8px; padding:20px; background:var(--surface); border:1px solid var(--line); border-radius:16px}
+.score{font-family:var(--serif); font-size:68px; line-height:1; font-weight:500; letter-spacing:-.02em}
+.score small{font-size:24px; color:var(--muted); margin-left:4px}
+
+/* Ripasso */
+.card{min-height:230px; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; gap:10px; background:var(--surface); border:1px solid var(--line); border-radius:18px; padding:28px 20px; margin:14px 0}
+.card .front{font-family:var(--serif); font-size:clamp(28px,8vw,40px); line-height:1.15}
+.card .back{font-size:19px; color:var(--ink-2)}
+.card .esempio{font-family:var(--serif); font-style:italic; color:var(--muted); font-size:16.5px; max-width:40ch}
+.boxes{display:flex; height:10px; border-radius:5px; overflow:hidden; background:var(--surface-2); border:1px solid var(--line); margin:10px 0 6px}
+.boxes span{display:block; height:100%}
+.wlist{list-style:none; padding:0; margin:8px 0}
+.wlist li{display:flex; gap:10px; align-items:baseline; padding:8px 0; border-bottom:1px solid var(--line); font-size:15px}
+.wlist li b{font-family:var(--serif); font-weight:500; font-size:16.5px}
+.wlist li button{margin-left:auto}
+
+.steps{counter-reset:s}
+.step{position:relative; padding:4px 0 8px 44px; margin:18px 0}
+.step::before{counter-increment:s; content:counter(s); position:absolute; left:0; top:0; width:30px; height:30px; border-radius:50%; border:1px solid var(--ink); font-family:var(--serif); font-size:17px; display:flex; align-items:center; justify-content:center}
+.step h3{font-family:var(--serif); font-weight:500; font-size:21px; margin:0 0 6px}
+pre.code{font-family:var(--mono); font-size:13px; background:var(--surface-2); border:1px solid var(--line); border-radius:10px; padding:10px 12px; overflow-x:auto; white-space:pre}
+details summary{cursor:pointer; font-weight:600; font-size:14.5px; color:var(--ink-2); margin:8px 0}
+.err{color:var(--ko); font-size:14.5px}
+.okmsg{color:var(--ok); font-size:14.5px; font-weight:600}
+
+.toast{position:fixed; left:50%; transform:translateX(-50%); bottom:calc(78px + env(safe-area-inset-bottom,0px)); z-index:30; background:var(--ink); color:var(--paper); padding:10px 16px; border-radius:10px; font-size:14.5px; max-width:92vw; box-shadow:0 6px 24px rgba(10,20,40,.25)}
+.center{min-height:80vh; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:24px}
+.login{width:100%; max-width:380px; text-align:left}
+
+@media (prefers-reduced-motion: reduce){ *{animation:none !important; transition:none !important} }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone@7.26.4/babel.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+
+<script type="text/babel" data-presets="react">
+const { useState, useEffect, useMemo, useCallback, useRef } = React;
+
+/* =========================================================
+   CONFIGURAZIONE
+   Incolla qui l'oggetto firebaseConfig (oppure inseriscilo da Opzioni dentro l'app).
+   ========================================================= */
+const FIREBASE_CONFIG = null;
+const ROOT = "gradus";
+const SEED_VERSION = 1;
+const PROFILO_DEFAULT = "Controller junior con laurea magistrale in economia aziendale. Tedesco livello B1, obiettivo B2.";
+const INTERVALLI = [0, 1, 3, 7, 14, 30]; // giorni per scatola 1..5 del ripasso
+
+/* ================= Utilità ================= */
+const T = (...l) => l.join("\n");
+const ymd = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+const today = () => ymd(new Date());
+const addDays = (s, n) => { const [y, m, d] = s.split("-").map(Number); const x = new Date(y, m - 1, d); x.setDate(x.getDate() + n); return ymd(x); };
+const rid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+const slug = (s) => {
+  const x = String(s || "").toLowerCase().replace(/ß/g, "ss").normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 60);
+  return x || rid();
+};
+const lsGet = (k) => { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : null; } catch (e) { return null; } };
+const lsSet = (k, v) => { try { if (v === null) localStorage.removeItem(k); else localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
+const shuffle = (a) => { const b = [...a]; for (let i = b.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [b[i], b[j]] = [b[j], b[i]]; } return b; };
+const fmtNum = (v) => Number(v).toLocaleString("it-IT", { maximumFractionDigits: 4 });
+const go = (p) => { location.hash = "#/" + p; };
+
+function parseNum(s) {
+  if (s === undefined || s === null) return null;
+  let t = String(s).trim().replace(/[−–]/g, "-").replace(/[€%\s]/g, "").replace(/[a-zA-Z]/g, "");
+  if (!t) return null;
+  if (t.includes(",")) t = t.replace(/\./g, "").replace(",", ".");
+  else if ((t.match(/\./g) || []).length > 1) t = t.replace(/\./g, "");
+  else if (/^-?[1-9]\d{0,2}\.\d{3}$/.test(t)) t = t.replace(".", "");
+  const v = parseFloat(t);
+  return isNaN(v) ? null : v;
+}
+function norm(s) {
+  return String(s ?? "").normalize("NFC").toLowerCase()
+    .replace(/ä/g, "ae").replace(/ö/g, "oe").replace(/ü/g, "ue").replace(/ß/g, "ss")
+    .replace(/[.,;:!?«»"'’]/g, "").replace(/\s+/g, " ").trim();
+}
+async function copyText(t) {
+  try { await navigator.clipboard.writeText(t); return true; }
+  catch (e) {
+    try {
+      const ta = document.createElement("textarea"); ta.value = t; ta.style.position = "fixed"; ta.style.opacity = "0";
+      document.body.appendChild(ta); ta.focus(); ta.select(); const ok = document.execCommand("copy"); document.body.removeChild(ta); return ok;
+    } catch (e2) { return false; }
+  }
+}
+
+/* Mini markdown: ## titoli, - elenchi, 1. elenchi, > nota, | tabelle, **grassetto**, *corsivo*, `formula` */
+const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+const inline = (s) => esc(s)
+  .replace(/`([^`]+)`/g, "<code>$1</code>")
+  .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+  .replace(/(^|[^*])\*([^*\n]+)\*/g, "$1<em>$2</em>");
+function renderMd(md) {
+  const lines = String(md || "").split("\n");
+  let html = "", i = 0;
+  const isUl = (l) => /^\s*[-•]\s+/.test(l), isOl = (l) => /^\s*\d+[.)]\s+/.test(l);
+  while (i < lines.length) {
+    const line = lines[i];
+    if (!line.trim()) { i++; continue; }
+    if (line.startsWith("### ")) { html += "<h4>" + inline(line.slice(4)) + "</h4>"; i++; continue; }
+    if (line.startsWith("## ")) { html += "<h3>" + inline(line.slice(3)) + "</h3>"; i++; continue; }
+    if (isUl(line)) { html += "<ul>"; while (i < lines.length && isUl(lines[i])) { html += "<li>" + inline(lines[i].replace(/^\s*[-•]\s+/, "")) + "</li>"; i++; } html += "</ul>"; continue; }
+    if (isOl(line)) { html += "<ol>"; while (i < lines.length && isOl(lines[i])) { html += "<li>" + inline(lines[i].replace(/^\s*\d+[.)]\s+/, "")) + "</li>"; i++; } html += "</ol>"; continue; }
+    if (line.startsWith(">")) { const q = []; while (i < lines.length && lines[i].startsWith(">")) { q.push(lines[i].replace(/^>\s?/, "")); i++; } html += "<blockquote>" + inline(q.join(" ")) + "</blockquote>"; continue; }
+    if (line.trim().startsWith("|")) {
+      const rows = []; while (i < lines.length && lines[i].trim().startsWith("|")) { rows.push(lines[i].trim()); i++; }
+      const cells = (r) => r.replace(/^\|/, "").replace(/\|$/, "").split("|").map((c) => c.trim());
+      const body = rows.filter((r) => !/^\|?\s*:?-{2,}/.test(r));
+      if (body.length) html += '<div class="tbl"><table><thead><tr>' + cells(body[0]).map((c) => "<th>" + inline(c) + "</th>").join("") + "</tr></thead><tbody>" +
+        body.slice(1).map((r) => "<tr>" + cells(r).map((c) => "<td>" + inline(c) + "</td>").join("") + "</tr>").join("") + "</tbody></table></div>";
+      continue;
+    }
+    if (/^\s*`[^`]+`\s*$/.test(line)) { html += '<p class="formula">' + inline(line.trim()) + "</p>"; i++; continue; }
+    html += "<p>" + inline(line) + "</p>"; i++;
+  }
+  return html;
+}
+
+/* ================= Contenuti iniziali ================= */
+const SEED_AREAS = {
+  finanza: { id: "finanza", nome: "Finanza", descrizione: "Valore del denaro, valutazione degli investimenti e delle aziende, rischio.", colore: "#1F7A6B", livelli: ["Base", "Intermedio", "Avanzato"], ordine: 1 },
+  marketing: { id: "marketing", nome: "Marketing", descrizione: "Clienti e mercati, metriche di acquisizione, prezzo.", colore: "#A23B72", livelli: ["Base", "Intermedio", "Avanzato"], ordine: 2 },
+  controllo: { id: "controllo", nome: "Economia e controllo", descrizione: "Costi, budget, scostamenti e analisi dei margini.", colore: "#B07A1F", livelli: ["Base", "Intermedio", "Avanzato"], ordine: 3 },
+  tedesco: { id: "tedesco", nome: "Tedesco", descrizione: "Da B1 a B2: grammatica, lessico economico e scrittura formale.", colore: "#3A5BA0", livelli: ["B1", "B1+", "B2"], ordine: 4 },
+};
+
+const SEED_LESSONS = [
+  /* ---------- FINANZA ---------- */
+  {
+    id: "fin-base-valore-tempo", area: "finanza", livello: "Base", titolo: "Il valore del denaro nel tempo", argomento: "Capitalizzazione e attualizzazione", minuti: 15,
+    teoria: T(
+      "## L'idea di fondo",
+      "Un euro oggi vale più di un euro domani: puoi investirlo e farlo fruttare. Per confrontare somme disponibili in momenti diversi bisogna portarle alla stessa data.",
+      "## Capitalizzazione",
+      "Con capitalizzazione composta al tasso annuo r, un capitale C0 dopo n anni diventa:",
+      "`Cn = C0 × (1 + r)^n`",
+      "Gli interessi producono a loro volta interessi: è l'effetto composto, che cresce più che proporzionalmente con il tempo.",
+      "## Attualizzazione",
+      "È il percorso inverso: quanto vale oggi una somma che riceverai tra n anni?",
+      "`C0 = Cn / (1 + r)^n`",
+      "Il fattore `1 / (1 + r)^n` si chiama **fattore di sconto**. Più alto è il tasso o più lontana è la scadenza, più basso è il valore attuale.",
+      "## Tassi periodali e tasso effettivo",
+      "Se il tasso è mensile, il tasso effettivo annuo è:",
+      "`r = (1 + i mensile)^12 − 1`",
+      "Un 1% al mese non equivale a un 12% annuo, ma a circa il 12,68%.",
+      "## Regola del 72",
+      "Per stimare in quanti anni un capitale raddoppia: `72 / tasso in %`. Al 6% servono circa 12 anni.",
+      "> In azienda questa logica sta dietro alle decisioni di investimento, al confronto tra acquisto e leasing, ai piani di rimborso dei finanziamenti."
+    ),
+    esercizi: [
+      { tipo: "numerico", domanda: "Investi 10.000 € al 4% annuo composto per 5 anni. Quanto avrai alla fine?", risposta: 12166.53, tolleranza: 1, unita: "€", spiegazione: "10.000 × 1,04^5 = 10.000 × 1,21665 = 12.166,53 €." },
+      { tipo: "numerico", domanda: "Quanto vale oggi un incasso di 5.000 € che riceverai tra 3 anni, con un tasso del 5%?", risposta: 4319.19, tolleranza: 1, unita: "€", spiegazione: "5.000 / 1,05^3 = 5.000 / 1,157625 = 4.319,19 €." },
+      { tipo: "numerico", domanda: "Un conto rende l'1% al mese. Qual è il tasso effettivo annuo? (due decimali)", risposta: 12.68, tolleranza: 0.02, unita: "%", spiegazione: "1,01^12 − 1 = 0,12683, cioè 12,68%." },
+      { tipo: "multipla", domanda: "Con un tasso del 3% annuo, quale alternativa vale di più oggi?", opzioni: ["1.000 € oggi", "1.020 € tra un anno", "1.050 € tra due anni", "Sono equivalenti"], risposta: 0, spiegazione: "1.020 / 1,03 = 990,29 € e 1.050 / 1,03^2 = 989,73 €: entrambe valgono meno di 1.000 € oggi." },
+      { tipo: "vf", domanda: "A parità di tasso, raddoppiare la durata di un investimento raddoppia esattamente gli interessi maturati.", risposta: false, spiegazione: "Con la capitalizzazione composta gli interessi crescono più che proporzionalmente: gli interessi producono altri interessi." },
+      { tipo: "completa", domanda: "Il fattore 1 / (1 + r)^n si chiama fattore di ___.", risposta: ["sconto", "attualizzazione"], spiegazione: "È il fattore di sconto (o di attualizzazione): trasforma un valore futuro in valore attuale." },
+    ],
+  },
+  {
+    id: "fin-int-van-tir", area: "finanza", livello: "Intermedio", titolo: "VAN e TIR", argomento: "Valutazione dei progetti di investimento", minuti: 20,
+    teoria: T(
+      "## Valore attuale netto",
+      "Il VAN somma i flussi di cassa di un progetto attualizzati al costo del capitale k, compreso l'investimento iniziale con segno negativo:",
+      "`VAN = −I0 + Σ Ft / (1 + k)^t`",
+      "Se il VAN è positivo, il progetto crea valore oltre il rendimento richiesto da chi lo finanzia.",
+      "## Tasso interno di rendimento",
+      "Il TIR è il tasso che azzera il VAN. Si accetta il progetto se il TIR supera il costo del capitale.",
+      "Si trova per tentativi oppure con la funzione TIR.COST di Excel.",
+      "## Quando i due criteri non vanno d'accordo",
+      "Con progetti alternativi (se ne può fare uno solo) il TIR può premiare il progetto piccolo ma molto redditizio in percentuale, mentre il VAN premia quello che crea più valore in euro. In caso di conflitto vale il VAN.",
+      "Altri limiti del TIR:",
+      "- presuppone che i flussi intermedi siano reinvestiti allo stesso TIR;",
+      "- con flussi che cambiano segno più volte possono esistere più TIR, o nessuno.",
+      "## Rendita costante",
+      "Se il flusso F è uguale ogni anno per n anni, il valore attuale è:",
+      "`VA = F × [1 − (1 + k)^−n] / k`",
+      "> In Excel la funzione VAN attualizza i flussi a partire dall'anno 1: per il VAN completo scrivi =VAN(tasso;flussi dall'anno 1) − investimento iniziale."
+    ),
+    esercizi: [
+      { tipo: "numerico", domanda: "Un progetto richiede 1.000 € oggi e genera 400 € all'anno per 3 anni. Con un costo del capitale dell'8%, qual è il VAN?", risposta: 30.84, tolleranza: 0.5, unita: "€", spiegazione: "Fattore di rendita a 3 anni all'8% = 2,5771. 400 × 2,5771 = 1.030,84. VAN = 1.030,84 − 1.000 = 30,84 €." },
+      { tipo: "numerico", domanda: "Qual è, approssimativamente, il TIR dello stesso progetto? (una cifra decimale)", risposta: 9.7, tolleranza: 0.15, unita: "%", spiegazione: "Al 9,7% il fattore di rendita a 3 anni vale circa 2,50: 400 × 2,50 = 1.000, quindi il VAN si azzera." },
+      { tipo: "multipla", domanda: "Due progetti alternativi: A ha VAN 120 € e TIR 25%, B ha VAN 300 € e TIR 15%. Il costo del capitale è 10%. Quale scegli?", opzioni: ["A, perché ha il TIR più alto", "B, perché crea più valore", "Entrambi", "Nessuno dei due"], risposta: 1, spiegazione: "Con progetti alternativi prevale il VAN: B crea 300 € di valore contro 120 €." },
+      { tipo: "vf", domanda: "Il TIR presuppone che i flussi intermedi vengano reinvestiti al TIR stesso.", risposta: true, spiegazione: "È uno dei suoi limiti: con TIR molto alti l'ipotesi di reinvestimento è poco realistica. Il TIR modificato (TIR.VAR in Excel) la corregge." },
+      { tipo: "completa", domanda: "In Excel, la funzione VAN attualizza i flussi a partire dall'anno ___.", risposta: ["1", "uno"], spiegazione: "VAN considera il primo flusso come anno 1: l'investimento all'anno 0 va sottratto a parte." },
+      { tipo: "aperta", domanda: "Spiega a un responsabile commerciale, in poche righe, perché un progetto con TIR del 18% può essere meno conveniente di uno con TIR del 12%.", criteri: "Cita la dimensione dell'investimento e il valore creato in euro (VAN); l'ipotesi di reinvestimento del TIR; il confronto con il costo del capitale; linguaggio semplice.", spiegazione: "Il TIR misura un rendimento percentuale, non quanta ricchezza si crea. Un progetto piccolo al 18% può generare meno euro di valore di un progetto grande al 12%, se entrambi superano il costo del capitale." },
+    ],
+  },
+  {
+    id: "fin-avz-wacc-dcf", area: "finanza", livello: "Avanzato", titolo: "WACC e valutazione DCF", argomento: "Costo del capitale e valore terminale", minuti: 25,
+    teoria: T(
+      "## Il flusso da attualizzare",
+      "Nel DCF unlevered si attualizzano i flussi di cassa operativi, disponibili per tutti i finanziatori:",
+      "`FCFF = EBIT × (1 − t) + ammortamenti − capex − Δ capitale circolante`",
+      "## Il tasso: WACC",
+      "`WACC = E/(D+E) × Ke + D/(D+E) × Kd × (1 − t)`",
+      "- E e D vanno presi a valori di mercato, non contabili;",
+      "- il costo del debito è al netto dello scudo fiscale sugli interessi;",
+      "- il costo dell'equity si stima con il CAPM: `Ke = rf + β × premio per il rischio di mercato`.",
+      "## Beta levered e unlevered",
+      "Il beta osservato sul mercato incorpora anche la leva finanziaria. Per usare i beta di società comparabili si toglie la leva e poi la si reinserisce con la struttura della società da valutare (formula di Hamada):",
+      "`βU = βL / [1 + (1 − t) × D/E]`",
+      "## Valore terminale",
+      "Oltre l'orizzonte esplicito (di solito 3-5 anni) si usa il modello di Gordon:",
+      "`TV = FCFF(n+1) / (WACC − g)`",
+      "Il TV va poi attualizzato all'anno 0 con il fattore di sconto dell'anno n.",
+      "## Dal valore dell'impresa al valore del capitale",
+      "`Equity value = Enterprise value − posizione finanziaria netta`",
+      "> Nella pratica il valore terminale pesa spesso oltre il 60-70% dell'enterprise value: piccole variazioni di g o del WACC spostano molto il risultato. Per questo la valutazione si accompagna sempre a una tabella di sensitività."
+    ),
+    esercizi: [
+      { tipo: "numerico", domanda: "Equity a valori di mercato 600, debito 400, Ke 10%, Kd 5%, aliquota 24%. Calcola il WACC.", risposta: 7.52, tolleranza: 0.02, unita: "%", spiegazione: "0,6 × 10% + 0,4 × 5% × 0,76 = 6% + 1,52% = 7,52%." },
+      { tipo: "numerico", domanda: "Tasso privo di rischio 3%, beta 1,1, premio per il rischio di mercato 5,5%. Qual è il Ke secondo il CAPM?", risposta: 9.05, tolleranza: 0.02, unita: "%", spiegazione: "3% + 1,1 × 5,5% = 3% + 6,05% = 9,05%." },
+      { tipo: "numerico", domanda: "Beta levered 1,2, D/E 0,5, aliquota 24%. Qual è il beta unlevered? (due decimali)", risposta: 0.87, tolleranza: 0.01, spiegazione: "1,2 / (1 + 0,76 × 0,5) = 1,2 / 1,38 = 0,8696." },
+      { tipo: "numerico", domanda: "Il FCFF del primo anno oltre l'orizzonte esplicito è 100, WACC 8%, crescita perpetua 2%. Valore terminale?", risposta: 1666.67, tolleranza: 1, spiegazione: "100 / (0,08 − 0,02) = 1.666,67 (valore alla fine dell'orizzonte, da attualizzare)." },
+      { tipo: "multipla", domanda: "Perché nel WACC si usano pesi a valori di mercato?", opzioni: ["Perché sono più facili da reperire", "Perché il WACC deve riflettere il costo opportunità del capitale ai valori attuali", "Perché lo richiedono i principi contabili", "Perché i valori contabili includono le imposte"], risposta: 1, spiegazione: "Il WACC rappresenta il rendimento richiesto oggi dagli investitori sul capitale che hanno a rischio, misurato ai valori correnti." },
+      { tipo: "vf", domanda: "Se g si avvicina al WACC, il valore terminale tende a crescere senza limite.", risposta: true, spiegazione: "Il denominatore WACC − g tende a zero: è il motivo per cui g deve restare prudente, vicino alla crescita nominale di lungo periodo." },
+      { tipo: "aperta", domanda: "Una valutazione DCF ha un valore terminale pari all'80% dell'enterprise value. Quali controlli faresti prima di presentarla?", criteri: "Sensitività su WACC e g; coerenza di g con inflazione e crescita di lungo periodo; normalizzazione dell'ultimo flusso (capex vicino agli ammortamenti, circolante stabile); confronto con i multipli impliciti (EV/EBITDA del TV); eventuale allungamento dell'orizzonte esplicito.", spiegazione: "Un TV così pesante rende la valutazione sensibile alle ipotesi di lungo periodo: vanno verificate e mostrate con una tabella di sensitività e un confronto con i multipli." },
+    ],
+  },
+
+  /* ---------- MARKETING ---------- */
+  {
+    id: "mkt-base-stp-mix", area: "marketing", livello: "Base", titolo: "Segmentazione, target e marketing mix", argomento: "STP e 4P", minuti: 15,
+    teoria: T(
+      "## Dal mercato al cliente",
+      "- **Segmentazione**: dividere il mercato in gruppi omogenei per bisogni e comportamenti. Criteri tipici: geografici, demografici, psicografici (stili di vita, valori), comportamentali (frequenza d'uso, fedeltà, benefici cercati).",
+      "- **Targeting**: scegliere su quali segmenti puntare valutando dimensione, crescita, accessibilità e coerenza con le proprie risorse.",
+      "- **Posizionamento**: il posto che vuoi occupare nella mente del cliente rispetto ai concorrenti.",
+      "Una frase di posizionamento classica: per [target], [marca] è [categoria] che offre [beneficio distintivo], perché [prova].",
+      "## Le 4P del marketing mix",
+      "- **Product**: caratteristiche, qualità, gamma, design, servizi collegati.",
+      "- **Price**: listino, sconti, condizioni di pagamento.",
+      "- **Place**: canali di distribuzione e copertura.",
+      "- **Promotion**: pubblicità, promozioni, forza vendita, comunicazione digitale.",
+      "Nei servizi si aggiungono People, Process e Physical evidence: sono le 7P.",
+      "## Coerenza",
+      "Le leve devono raccontare la stessa storia. Un prodotto premium venduto in canali discount con promozioni continue confonde il posizionamento."
+    ),
+    esercizi: [
+      { tipo: "multipla", domanda: "Quale leva del marketing mix riguarda la scelta dei canali di vendita?", opzioni: ["Product", "Price", "Place", "Promotion"], risposta: 2, spiegazione: "Place comprende canali, distribuzione e copertura del mercato." },
+      { tipo: "multipla", domanda: "Segmentare in base ai «benefici cercati» è un criterio:", opzioni: ["Geografico", "Demografico", "Psicografico", "Comportamentale"], risposta: 3, spiegazione: "I benefici cercati, la frequenza d'uso e la fedeltà sono criteri comportamentali." },
+      { tipo: "completa", domanda: "Il processo STP è composto da segmentazione, targeting e ___.", risposta: ["posizionamento", "positioning"], spiegazione: "STP sta per Segmentation, Targeting, Positioning." },
+      { tipo: "vf", domanda: "Un segmento utile deve essere, tra le altre cose, raggiungibile con i canali e la comunicazione dell'azienda.", risposta: true, spiegazione: "Oltre a essere misurabile e abbastanza grande, un segmento deve essere accessibile." },
+      { tipo: "multipla", domanda: "Un marchio di orologi di lusso lancia sconti del 40% su un sito outlet. Il rischio principale è:", opzioni: ["Aumentare troppo i volumi", "Danneggiare il posizionamento percepito", "Ridurre i costi di distribuzione", "Migliorare la notorietà del marchio"], risposta: 1, spiegazione: "Prezzo e canale incoerenti con il posizionamento premium erodono il valore percepito del marchio." },
+      { tipo: "aperta", domanda: "Scrivi la frase di posizionamento per un marchio di caffè specialty venduto online in abbonamento.", criteri: "Target preciso; categoria; beneficio distintivo credibile; prova o ragione per crederci; coerenza con canale e prezzo.", spiegazione: "Esempio: per chi a casa vuole un caffè da bar di qualità, X è l'abbonamento di caffè specialty che porta ogni due settimane chicchi tostati da meno di 7 giorni, perché tostiamo solo su ordinazione." },
+    ],
+  },
+  {
+    id: "mkt-int-cac-ltv", area: "marketing", livello: "Intermedio", titolo: "CAC, LTV e churn", argomento: "Metriche di acquisizione e fidelizzazione", minuti: 20,
+    teoria: T(
+      "## Quanto costa acquisire un cliente",
+      "`CAC = spesa di marketing e vendita del periodo / nuovi clienti acquisiti`",
+      "Includi tutti i costi pertinenti (campagne, strumenti, quota del personale): altrimenti il CAC risulta sottostimato.",
+      "## Quanto vale un cliente",
+      "Nei modelli in abbonamento, con churn mensile costante, la durata media della relazione è `1 / churn`. Quindi:",
+      "`LTV = ARPU × margine lordo % / churn`",
+      "dove ARPU è il ricavo medio per cliente nel periodo.",
+      "## Rapporti da tenere d'occhio",
+      "- `LTV / CAC`: un riferimento diffuso è almeno 3. Sotto 1 ogni nuovo cliente distrugge valore.",
+      "- Payback del CAC: `CAC / (ARPU × margine %)`, in mesi. Più è breve, meno cassa serve per crescere.",
+      "- Churn: una piccola riduzione aumenta molto la LTV, perché la durata attesa è il suo inverso.",
+      "## Attenzione alle medie",
+      "Le metriche vanno lette per canale e per coorte: un canale economico può portare clienti che se ne vanno subito."
+    ),
+    esercizi: [
+      { tipo: "numerico", domanda: "Spendi 20.000 € in un trimestre e acquisisci 400 clienti. Qual è il CAC?", risposta: 50, tolleranza: 0.01, unita: "€", spiegazione: "20.000 / 400 = 50 €." },
+      { tipo: "numerico", domanda: "ARPU 30 € al mese, margine lordo 70%, churn mensile 5%. Qual è la LTV?", risposta: 420, tolleranza: 0.5, unita: "€", spiegazione: "30 × 0,70 / 0,05 = 21 / 0,05 = 420 €." },
+      { tipo: "numerico", domanda: "Con CAC di 50 € e i dati precedenti, in quanti mesi recuperi il CAC? (una cifra decimale)", risposta: 2.4, tolleranza: 0.05, unita: "mesi", spiegazione: "Margine mensile per cliente = 30 × 0,70 = 21 €. 50 / 21 = 2,38 mesi." },
+      { tipo: "multipla", domanda: "Il churn mensile scende dal 5% al 4%. A parità del resto, la LTV:", opzioni: ["Scende del 20%", "Resta uguale", "Sale del 25%", "Sale dell'1%"], risposta: 2, spiegazione: "La durata attesa passa da 20 a 25 mesi: +25%." },
+      { tipo: "vf", domanda: "Un rapporto LTV/CAC pari a 0,8 indica che l'acquisizione di clienti crea valore.", risposta: false, spiegazione: "Con LTV/CAC sotto 1 ogni cliente costa più di quanto rende nel corso della relazione." },
+      { tipo: "aperta", domanda: "Un canale social ha CAC di 20 € e la ricerca a pagamento di 60 €. Il marketing vuole spostare tutto il budget sul social. Cosa chiederesti prima di decidere?", criteri: "LTV e churn per canale e per coorte; margine dei clienti acquisiti; scalabilità e CAC marginale crescente; metodo di attribuzione; qualità dei clienti.", spiegazione: "Il CAC da solo non basta: servono LTV per canale, la tenuta delle coorti e come varia il CAC quando si aumenta la spesa." },
+    ],
+  },
+  {
+    id: "mkt-avz-pricing", area: "marketing", livello: "Avanzato", titolo: "Pricing: elasticità e costo degli sconti", argomento: "Prezzo e margine", minuti: 25,
+    teoria: T(
+      "## Elasticità della domanda al prezzo",
+      "`ε = variazione % della quantità / variazione % del prezzo`",
+      "- se |ε| > 1 la domanda è elastica: un aumento di prezzo riduce il fatturato;",
+      "- se |ε| < 1 la domanda è rigida: un aumento di prezzo aumenta il fatturato.",
+      "## Quanto volume serve per compensare uno sconto",
+      "Con margine di contribuzione m% sul prezzo e sconto d%, per mantenere lo stesso margine totale i volumi devono crescere di:",
+      "`Δ volume richiesto = d / (m − d)`",
+      "Con margine 40% e sconto 10% servono +33% di volumi. Con margine 20% lo stesso sconto richiede +100%.",
+      "## Aumentare il prezzo",
+      "Con un aumento di prezzo p% puoi perdere fino a `p / (m + p)` dei volumi senza ridurre il margine totale.",
+      "## Approcci al prezzo",
+      "- **Cost-plus**: costo più ricarico. Semplice, ma ignora la disponibilità a pagare.",
+      "- **Basato sui concorrenti**: allineato ai prezzi di mercato.",
+      "- **Value-based**: parte dal valore percepito dal cliente e dalla sua migliore alternativa. È il più difficile, ma cattura più margine.",
+      "> Gli sconti agiscono sul prezzo, ma il loro costo si misura sul margine: a margini bassi anche uno sconto piccolo costa moltissimo."
+    ),
+    esercizi: [
+      { tipo: "numerico", domanda: "Margine di contribuzione 40%, sconto 10%. Di quanto devono crescere i volumi per mantenere lo stesso margine totale? (una cifra decimale)", risposta: 33.3, tolleranza: 0.1, unita: "%", spiegazione: "10 / (40 − 10) = 0,333: +33,3%." },
+      { tipo: "numerico", domanda: "Il prezzo sale del 5% e la quantità scende dell'8%. Quanto vale l'elasticità? (con segno)", risposta: -1.6, tolleranza: 0.01, spiegazione: "−8% / +5% = −1,6: domanda elastica." },
+      { tipo: "numerico", domanda: "Nello stesso caso, di quanto varia il fatturato? (con segno, una cifra decimale)", risposta: -3.4, tolleranza: 0.05, unita: "%", spiegazione: "1,05 × 0,92 = 0,966: il fatturato cala del 3,4%." },
+      { tipo: "numerico", domanda: "Margine 25%. Aumenti il prezzo del 5%. Qual è la perdita massima di volumi che puoi sopportare senza ridurre il margine totale? (una cifra decimale)", risposta: 16.7, tolleranza: 0.1, unita: "%", spiegazione: "5 / (25 + 5) = 16,7%." },
+      { tipo: "multipla", domanda: "Domanda con elasticità −0,4. Un aumento di prezzo del 10%:", opzioni: ["Riduce il fatturato", "Aumenta il fatturato", "Lascia invariato il fatturato", "Azzera la domanda"], risposta: 1, spiegazione: "Quantità −4%: 1,10 × 0,96 = 1,056, fatturato +5,6%." },
+      { tipo: "vf", domanda: "Con il metodo cost-plus il prezzo tiene conto della disponibilità a pagare del cliente.", risposta: false, spiegazione: "Il cost-plus parte dal costo interno e ignora il valore percepito." },
+      { tipo: "aperta", domanda: "Un'azienda vuole passare dal cost-plus al value-based pricing su una linea premium. Quali informazioni deve raccogliere?", criteri: "Valore percepito e benefici; alternative e prezzi dei concorrenti; segmenti con diversa disponibilità a pagare; costi di cambio per il cliente; strumenti di ricerca (interviste, conjoint, Van Westendorp); impatto su canali e listini.", spiegazione: "Serve capire quanto vale il prodotto per ciascun segmento rispetto alla sua migliore alternativa, e verificarlo con ricerche e test prima di cambiare i listini." },
+    ],
+  },
+
+  /* ---------- ECONOMIA E CONTROLLO ---------- */
+  {
+    id: "ctr-base-break-even", area: "controllo", livello: "Base", titolo: "Costi, margine di contribuzione e break-even", argomento: "Analisi costi-volumi-risultati", minuti: 15,
+    teoria: T(
+      "## Costi fissi e variabili",
+      "- **Variabili**: crescono con i volumi (materie prime, provvigioni, energia di processo).",
+      "- **Fissi**: non cambiano nel breve periodo entro una certa capacità (affitti, personale di struttura, ammortamenti).",
+      "## Margine di contribuzione",
+      "`MdC unitario = prezzo − costo variabile unitario`",
+      "È quanto ogni unità venduta contribuisce a coprire i costi fissi e poi a generare utile. Il **margine di contribuzione %** è `MdC / prezzo`.",
+      "## Punto di pareggio",
+      "`Quantità di pareggio = costi fissi / MdC unitario`",
+      "`Fatturato di pareggio = costi fissi / MdC %`",
+      "## Margine di sicurezza",
+      "`(vendite attuali − vendite di pareggio) / vendite attuali`",
+      "Dice di quanto possono scendere le vendite prima di andare in perdita.",
+      "## Leva operativa",
+      "`Leva operativa = margine di contribuzione totale / reddito operativo`",
+      "Con leva 4, un +10% di vendite produce circa un +40% di reddito operativo, e viceversa in calo."
+    ),
+    esercizi: [
+      { tipo: "numerico", domanda: "Costi fissi 120.000 €, prezzo 50 €, costo variabile 30 €. Quantità di pareggio?", risposta: 6000, tolleranza: 0.5, unita: "unità", spiegazione: "120.000 / (50 − 30) = 6.000 unità." },
+      { tipo: "numerico", domanda: "Qual è il fatturato di pareggio?", risposta: 300000, tolleranza: 1, unita: "€", spiegazione: "MdC % = 20 / 50 = 40%. 120.000 / 0,40 = 300.000 €." },
+      { tipo: "numerico", domanda: "Se vendi 8.000 unità, qual è il margine di sicurezza?", risposta: 25, tolleranza: 0.1, unita: "%", spiegazione: "(8.000 − 6.000) / 8.000 = 25%." },
+      { tipo: "numerico", domanda: "A 8.000 unità, qual è la leva operativa?", risposta: 4, tolleranza: 0.01, spiegazione: "MdC totale = 8.000 × 20 = 160.000. Reddito operativo = 160.000 − 120.000 = 40.000. 160.000 / 40.000 = 4." },
+      { tipo: "multipla", domanda: "Quale di questi è tipicamente un costo variabile?", opzioni: ["Affitto del capannone", "Ammortamento degli impianti", "Provvigioni agli agenti", "Stipendio del controller"], risposta: 2, spiegazione: "Le provvigioni variano con il fatturato." },
+      { tipo: "vf", domanda: "A parità di margine, più è alta la quota di costi fissi, più è alta la leva operativa.", risposta: true, spiegazione: "Con molti costi fissi il reddito operativo è piccolo rispetto al margine di contribuzione: le variazioni di volume si amplificano." },
+    ],
+  },
+  {
+    id: "ctr-int-scostamenti", area: "controllo", livello: "Intermedio", titolo: "Budget flessibile e analisi degli scostamenti", argomento: "Scostamenti su ricavi e materiali", minuti: 20,
+    teoria: T(
+      "## Budget statico e budget flessibile",
+      "Il budget statico è costruito sui volumi previsti. Il budget flessibile ricalcola i costi standard sui volumi effettivi: separa l'effetto dei volumi da quello di prezzo ed efficienza.",
+      "## Scostamenti sui ricavi",
+      "- **Volume**: `(Q effettiva − Q budget) × prezzo budget`",
+      "- **Prezzo**: `(prezzo effettivo − prezzo budget) × Q effettiva`",
+      "La somma dei due spiega tutta la differenza tra ricavi effettivi e di budget.",
+      "## Scostamenti sui materiali",
+      "Con uno standard di consumo per unità e un prezzo standard:",
+      "- **Prezzo**: `(prezzo effettivo − prezzo standard) × quantità effettiva usata`",
+      "- **Quantità**: `(quantità usata − quantità standard per la produzione effettiva) × prezzo standard`",
+      "## Segni e lettura",
+      "Sui ricavi uno scostamento positivo è favorevole. Sui costi è favorevole quando il costo effettivo è inferiore allo standard. Per evitare ambiguità indica sempre F (favorevole) o S (sfavorevole).",
+      "> Uno scostamento dice quanto, non perché: il valore del controllo sta nel risalire alla causa insieme a chi gestisce l'area."
+    ),
+    esercizi: [
+      { tipo: "numerico", domanda: "Budget: 1.000 unità a 20 €. Effettivo: 1.100 unità a 19 €. Scostamento di volume sui ricavi? (con segno)", risposta: 2000, tolleranza: 0.5, unita: "€", spiegazione: "(1.100 − 1.000) × 20 = +2.000 € favorevole." },
+      { tipo: "numerico", domanda: "Nello stesso caso, scostamento di prezzo? (con segno)", risposta: -1100, tolleranza: 0.5, unita: "€", spiegazione: "(19 − 20) × 1.100 = −1.100 € sfavorevole. Totale: +900 €." },
+      { tipo: "numerico", domanda: "Standard: 2 kg per unità a 3 €/kg. Produzione effettiva 1.100 unità, consumati 2.300 kg pagati 3,20 €/kg. Importo dello scostamento di prezzo sui materiali (valore assoluto)?", risposta: 460, tolleranza: 0.5, unita: "€", spiegazione: "(3,20 − 3,00) × 2.300 = 460 €." },
+      { tipo: "numerico", domanda: "Importo dello scostamento di quantità sui materiali (valore assoluto)?", risposta: 300, tolleranza: 0.5, unita: "€", spiegazione: "Quantità standard = 1.100 × 2 = 2.200 kg. (2.300 − 2.200) × 3 = 300 €." },
+      { tipo: "multipla", domanda: "I due scostamenti sui materiali sono:", opzioni: ["Entrambi favorevoli", "Entrambi sfavorevoli", "Prezzo favorevole, quantità sfavorevole", "Prezzo sfavorevole, quantità favorevole"], risposta: 1, spiegazione: "Si è pagato di più al kg e se ne è consumato di più dello standard." },
+      { tipo: "vf", domanda: "Il budget flessibile adegua i costi variabili standard ai volumi effettivi.", risposta: true, spiegazione: "È proprio la sua funzione: confrontare i costi effettivi con quanto si sarebbe dovuto spendere per quei volumi." },
+      { tipo: "aperta", domanda: "I ricavi sono sopra budget di 900 €, ma il responsabile vendite ha concesso sconti. Come presenteresti la situazione alla direzione?", criteri: "Separare volume (+2.000 F) e prezzo (−1.100 S); guardare l'impatto sul margine e non solo sui ricavi; cause e sostenibilità degli sconti; azioni proposte.", spiegazione: "Il dato netto positivo nasconde un effetto prezzo negativo: va mostrato, collegato al margine e discusso con le vendite per capire se gli sconti hanno generato volumi aggiuntivi redditizi." },
+    ],
+  },
+  {
+    id: "ctr-avz-mix", area: "controllo", livello: "Avanzato", titolo: "Scostamenti di quantità e di mix", argomento: "Analisi multi-prodotto del margine", minuti: 25,
+    teoria: T(
+      "## Perché serve lo scostamento di mix",
+      "Quando si vendono più prodotti con margini diversi, lo scostamento di volume «semplice» nasconde un effetto: la composizione delle vendite. Vendere più unità dei prodotti meno redditizi può far calare il margine medio.",
+      "## Scomposizione del volume",
+      "Con il margine unitario di budget di ciascun prodotto:",
+      "- **Quantità**: `(Q totale effettiva − Q totale budget) × margine medio budget`",
+      "- **Mix**: `Q totale effettiva × (margine medio al mix effettivo − margine medio budget)`",
+      "Il margine medio al mix effettivo usa i margini di budget pesati con le quantità effettive. Quantità più mix danno lo scostamento di volume sul margine.",
+      "## Esempio",
+      "| Prodotto | Q budget | Q effettiva | Margine unitario budget |",
+      "|---|---|---|---|",
+      "| A | 600 | 900 | 10 |",
+      "| B | 400 | 300 | 20 |",
+      "Margine medio budget = (600 × 10 + 400 × 20) / 1.000 = 14.",
+      "Margine medio al mix effettivo = (900 × 10 + 300 × 20) / 1.200 = 12,5.",
+      "## Non solo prodotti",
+      "La stessa logica vale per il mix di canali, clienti o Paesi. Nei report per mercato è spesso l'effetto che spiega perché fatturato e margine si muovono in direzioni diverse."
+    ),
+    esercizi: [
+      { tipo: "numerico", domanda: "Con i dati della tabella, qual è lo scostamento di quantità? (con segno)", risposta: 2800, tolleranza: 0.5, unita: "€", spiegazione: "(1.200 − 1.000) × 14 = +2.800 €." },
+      { tipo: "numerico", domanda: "Qual è lo scostamento di mix? (con segno)", risposta: -1800, tolleranza: 0.5, unita: "€", spiegazione: "1.200 × (12,5 − 14) = −1.800 €." },
+      { tipo: "numerico", domanda: "Qual è lo scostamento di volume totale sul margine?", risposta: 1000, tolleranza: 0.5, unita: "€", spiegazione: "Margine a volumi effettivi e margini budget = 9.000 + 6.000 = 15.000; budget = 14.000; differenza +1.000 = 2.800 − 1.800." },
+      { tipo: "vf", domanda: "Se tutti i prodotti avessero lo stesso margine unitario, lo scostamento di mix sarebbe nullo.", risposta: true, spiegazione: "Il margine medio non dipenderebbe dalla composizione delle vendite." },
+      { tipo: "multipla", domanda: "Fatturato +8% sul budget, margine di contribuzione −2%. La prima ipotesi da verificare è:", opzioni: ["Un errore nel budget dei costi fissi", "Un mix sfavorevole o un effetto prezzo negativo", "Un aumento degli ammortamenti", "Un effetto cambio sui debiti"], risposta: 1, spiegazione: "Il margine di contribuzione non dipende dai fissi: se i ricavi salgono e il margine scende, il sospetto va su mix, prezzi o costi variabili." },
+      { tipo: "aperta", domanda: "Scrivi il commento per la direzione: volumi +20%, ma mix sfavorevole per −1.800 €. Cosa scrivi e quali azioni proponi?", criteri: "Numeri chiari (quantità +2.800, mix −1.800, netto +1.000); causa (spostamento verso A, a margine più basso); domande su prezzi e incentivi commerciali; azioni (obiettivi di margine oltre che di volume, spinta su B, revisione dei prezzi di A).", spiegazione: "I volumi crescono ma sul prodotto meno redditizio: il margine cresce solo di 1.000 € invece di 2.800 €. Va capito perché B cala e se gli incentivi di vendita premiano i volumi invece del margine." },
+    ],
+  },
+
+  /* ---------- TEDESCO ---------- */
+  {
+    id: "de-b1-konnektoren", area: "tedesco", livello: "B1", titolo: "Konnektoren: weil, obwohl, deshalb, trotzdem", argomento: "Posizione del verbo con i connettivi", minuti: 15,
+    teoria: T(
+      "## Il connettivo decide dove va il verbo",
+      "In tedesco ci sono tre comportamenti diversi. Impararli a gruppi evita la maggior parte degli errori di ordine delle parole.",
+      "## 1. Coordinanti: nessun cambiamento",
+      "**und, aber, oder, denn, sondern** non cambiano l'ordine della frase.",
+      "`Ich bleibe zu Hause, denn ich bin krank.`",
+      "## 2. Subordinanti: verbo alla fine",
+      "**weil, da, obwohl, dass, wenn, als, ob** mandano il verbo coniugato in fondo alla secondaria.",
+      "`Ich bleibe zu Hause, weil ich krank bin.`",
+      "`Obwohl es regnet, gehen wir spazieren.`",
+      "Se la secondaria viene prima, la principale comincia con il verbo: `Weil ich krank bin, bleibe ich zu Hause.`",
+      "## 3. Avverbi connettivi: inversione",
+      "**deshalb, deswegen, trotzdem, dann, außerdem** occupano la prima posizione: il verbo segue subito, il soggetto va dopo.",
+      "`Ich bin krank, deshalb bleibe ich zu Hause.`",
+      "`Es regnet, trotzdem gehen wir spazieren.`",
+      "## Coppie da non confondere",
+      "- **weil** (secondaria), **denn** (coordinata) e **deshalb** (conseguenza, con inversione).",
+      "- **obwohl** (secondaria) e **trotzdem** (avverbio): stesso significato concessivo, sintassi diversa."
+    ),
+    vocaboli: [
+      { de: "der Auftrag", it: "l'ordine, l'incarico", esempio: "Wir haben einen großen Auftrag bekommen." },
+      { de: "das Personal", it: "il personale", esempio: "Wir brauchen mehr Personal." },
+      { de: "die Besprechung", it: "la riunione", esempio: "Die Besprechung beginnt um neun Uhr." },
+      { de: "der Arzttermin", it: "la visita medica", esempio: "Ich habe morgen einen Arzttermin." },
+      { de: "die Ursache", it: "la causa", esempio: "Was ist die Ursache des Problems?" },
+      { de: "die Folge", it: "la conseguenza", esempio: "Das hat negative Folgen für den Umsatz." },
+      { de: "trotzdem", it: "ciononostante", esempio: "Es war teuer, trotzdem haben wir es gekauft." },
+      { de: "pünktlich", it: "puntuale", esempio: "Der Zug ist heute pünktlich." },
+    ],
+    esercizi: [
+      { tipo: "completa", domanda: "Ich komme heute später, ___ ich einen Arzttermin habe.", risposta: ["weil", "da"], spiegazione: "Il verbo «habe» è alla fine: serve un connettivo subordinante causale, weil o da." },
+      { tipo: "completa", domanda: "Es regnet. ___ gehen wir spazieren.", risposta: ["Trotzdem", "Dennoch"], spiegazione: "Dopo il connettivo c'è subito il verbo: è un avverbio con inversione, trotzdem." },
+      { tipo: "multipla", domanda: "Quale frase è corretta?", opzioni: ["Ich bin müde, deshalb ich gehe früh ins Bett.", "Ich bin müde, deshalb gehe ich früh ins Bett.", "Ich bin müde, deshalb ich früh ins Bett gehe.", "Ich bin müde, weil gehe ich früh ins Bett."], risposta: 1, spiegazione: "deshalb occupa la prima posizione: segue il verbo (gehe) e poi il soggetto (ich)." },
+      { tipo: "completa", domanda: "Obwohl der Bericht fertig ___, schickt der Chef ihn nicht.", risposta: ["ist"], spiegazione: "obwohl manda il verbo in fondo alla secondaria: fertig ist." },
+      { tipo: "vf", domanda: "Il connettivo «denn» manda il verbo alla fine della frase.", risposta: false, spiegazione: "denn è coordinante: dopo denn l'ordine resta soggetto, verbo." },
+      { tipo: "completa", domanda: "Wir haben viele Aufträge, ___ brauchen wir mehr Personal.", risposta: ["deshalb", "deswegen", "daher", "darum"], spiegazione: "Conseguenza con inversione (brauchen wir): deshalb, deswegen, daher o darum." },
+      { tipo: "aperta", domanda: "Scrivi 3-4 frasi sul tuo lavoro usando weil, obwohl e deshalb.", criteri: "Uso corretto dei tre connettivi con l'ordine del verbo giusto; lessico lavorativo; correggi grammatica e dai la versione corretta.", spiegazione: "Esempio: Ich arbeite gern im Controlling, weil ich Zahlen mag. Obwohl der Monatsabschluss stressig ist, lerne ich viel. Wir haben bald die Budgetplanung, deshalb bereite ich die Daten vor." },
+    ],
+  },
+  {
+    id: "de-b1p-passiv", area: "tedesco", livello: "B1+", titolo: "Il passivo (Vorgangspassiv e Zustandspassiv)", argomento: "werden + participio", minuti: 20,
+    teoria: T(
+      "## Come si forma",
+      "`werden coniugato + participio II alla fine`",
+      "Das Budget **wird** jedes Jahr im November **erstellt**.",
+      "L'agente si introduce con **von** + dativo: Der Bericht wird **vom** Controller geschrieben.",
+      "## Tempi",
+      "- Präsens: Die Rechnung **wird** bezahlt.",
+      "- Präteritum: Die Rechnung **wurde** bezahlt.",
+      "- Perfekt: Die Rechnung **ist** bezahlt **worden**. Nel passivo si usa worden, non geworden.",
+      "## Con i verbi modali",
+      "`modale coniugato + participio II + werden`",
+      "Der Bericht **muss** bis Freitag **geschrieben werden**.",
+      "Die Kosten **sollen** reduziert **werden**.",
+      "## Zustandspassiv: lo stato",
+      "Con **sein** si descrive lo stato risultante: Das Büro **ist** geschlossen (è chiuso). Con **werden** l'azione: Das Büro **wird** um 18 Uhr geschlossen (viene chiuso).",
+      "> Nel tedesco aziendale il passivo è frequentissimo: report, procedure ed e-mail formali lo usano per mettere al centro il processo invece della persona."
+    ),
+    vocaboli: [
+      { de: "die Abweichung", it: "lo scostamento", esempio: "Die Abweichung zum Budget beträgt 5 %." },
+      { de: "genehmigen", it: "approvare", esempio: "Der Plan wurde gestern genehmigt." },
+      { de: "die Geschäftsführung", it: "la direzione", esempio: "Die Geschäftsführung hat entschieden." },
+      { de: "der Umsatz", it: "il fatturato", esempio: "Der Umsatz ist um 3 % gestiegen." },
+      { de: "die Bilanz", it: "lo stato patrimoniale, il bilancio", esempio: "Die Bilanz wird im März veröffentlicht." },
+      { de: "senken", it: "ridurre, abbassare", esempio: "Wir müssen die Kosten senken." },
+      { de: "prüfen", it: "verificare, controllare", esempio: "Die Zahlen werden noch geprüft." },
+      { de: "das Lager", it: "il magazzino", esempio: "Das Lager ist seit Montag geschlossen." },
+    ],
+    esercizi: [
+      { tipo: "completa", domanda: "Die Rechnung ___ morgen bezahlt.", risposta: ["wird"], spiegazione: "Passivo presente: wird + participio." },
+      { tipo: "completa", domanda: "Das Budget ___ letztes Jahr im Dezember genehmigt.", risposta: ["wurde"], spiegazione: "Passato (letztes Jahr): Präteritum, wurde." },
+      { tipo: "completa", domanda: "Die Zahlen sind noch nicht geprüft ___.", risposta: ["worden"], spiegazione: "Perfekt passivo: sein + participio + worden." },
+      { tipo: "multipla", domanda: "Quale frase è corretta?", opzioni: ["Der Bericht muss bis Freitag geschrieben werden.", "Der Bericht muss bis Freitag werden geschrieben.", "Der Bericht wird bis Freitag geschrieben müssen.", "Der Bericht muss bis Freitag geschrieben worden."], risposta: 0, spiegazione: "Con il modale: modale coniugato, poi participio e werden all'infinito in fondo." },
+      { tipo: "vf", domanda: "Nel Perfekt passivo si usa «geworden».", risposta: false, spiegazione: "Si usa worden: Die Rechnung ist bezahlt worden." },
+      { tipo: "multipla", domanda: "«Das Lager ist seit Montag geschlossen» descrive:", opzioni: ["Un'azione in corso", "Uno stato risultante", "Un'azione futura", "Un ordine"], risposta: 1, spiegazione: "sein + participio è lo Zustandspassiv: descrive lo stato." },
+      { tipo: "aperta", domanda: "Trasforma al passivo: «Der Controller analysiert die Abweichungen. Die Geschäftsführung hat den Plan genehmigt. Wir müssen die Kosten senken.»", criteri: "Tre frasi al passivo corrette, con i tempi rispettati; von + dativo facoltativo; correggi grammatica e dai la versione corretta.", spiegazione: "Die Abweichungen werden (vom Controller) analysiert. Der Plan ist (von der Geschäftsführung) genehmigt worden. Die Kosten müssen gesenkt werden." },
+    ],
+  },
+  {
+    id: "de-b2-nomen-verb", area: "tedesco", livello: "B2", titolo: "Nomen-Verb-Verbindungen e nominalizzazione", argomento: "Tedesco formale scritto", minuti: 25,
+    teoria: T(
+      "## Funktionsverbgefüge",
+      "Nel tedesco formale molti verbi si esprimono con un sostantivo e un verbo «di servizio». Il significato sta nel sostantivo:",
+      "- eine Entscheidung **treffen** (entscheiden)",
+      "- in Frage **stellen** (bezweifeln)",
+      "- zur Verfügung **stellen** (bereitstellen)",
+      "- in Betracht **ziehen** (erwägen)",
+      "- Kritik **üben** an + Dat. (kritisieren)",
+      "- in Kraft **treten** (gültig werden)",
+      "- einen Antrag **stellen** (beantragen)",
+      "- Rücksicht **nehmen** auf + Akk. (berücksichtigen)",
+      "## Nominalizzazione",
+      "I testi B2 condensano le secondarie in gruppi nominali:",
+      "- Weil die Kosten gestiegen sind: **wegen des Anstiegs** der Kosten",
+      "- Nachdem der Vertrag unterschrieben wurde: **nach der Unterzeichnung** des Vertrags",
+      "- Wenn man die Zahlen analysiert: **bei der Analyse** der Zahlen",
+      "Le preposizioni **wegen, trotz, während, aufgrund** reggono il genitivo.",
+      "> Quando leggi un articolo economico in tedesco, sottolinea le coppie nome più verbo: è il lessico che separa un B1 da un B2."
+    ),
+    vocaboli: [
+      { de: "eine Entscheidung treffen", it: "prendere una decisione", esempio: "Wir müssen heute eine Entscheidung treffen." },
+      { de: "zur Verfügung stellen", it: "mettere a disposizione", esempio: "Wir stellen Ihnen die Daten zur Verfügung." },
+      { de: "in Betracht ziehen", it: "prendere in considerazione", esempio: "Wir ziehen eine Preiserhöhung in Betracht." },
+      { de: "in Kraft treten", it: "entrare in vigore", esempio: "Die Regel tritt im Januar in Kraft." },
+      { de: "Kritik üben an", it: "criticare", esempio: "Der Kunde übte Kritik an der Lieferzeit." },
+      { de: "der Anstieg", it: "l'aumento", esempio: "Der Anstieg der Energiekosten belastet die Marge." },
+      { de: "die Nachfrage", it: "la domanda (di mercato)", esempio: "Die Nachfrage ist gesunken." },
+      { de: "die Unterzeichnung", it: "la firma", esempio: "Nach der Unterzeichnung beginnt das Projekt." },
+    ],
+    esercizi: [
+      { tipo: "completa", domanda: "Wir müssen bis Montag eine Entscheidung ___.", risposta: ["treffen"], spiegazione: "eine Entscheidung treffen = prendere una decisione." },
+      { tipo: "completa", domanda: "Wir stellen Ihnen die Unterlagen gern zur ___.", risposta: ["Verfügung"], spiegazione: "zur Verfügung stellen = mettere a disposizione." },
+      { tipo: "multipla", domanda: "«etwas in Betracht ziehen» significa:", opzioni: ["Rifiutare qualcosa", "Prendere in considerazione qualcosa", "Rimandare qualcosa", "Calcolare qualcosa"], risposta: 1, spiegazione: "in Betracht ziehen = erwägen, considerare." },
+      { tipo: "multipla", domanda: "Nominalizza: «Weil die Nachfrage gesunken ist, …»", opzioni: ["Wegen der gesunkenen Nachfrage …", "Wegen die Nachfrage sinkt …", "Trotz der Nachfrage …", "Weil der Nachfrage …"], risposta: 0, spiegazione: "wegen + genitivo: wegen der gesunkenen Nachfrage." },
+      { tipo: "completa", domanda: "Das neue Gesetz tritt am 1. Januar in ___.", risposta: ["Kraft"], spiegazione: "in Kraft treten = entrare in vigore." },
+      { tipo: "vf", domanda: "Nello scritto formale «wegen» e «trotz» reggono il genitivo.", risposta: true, spiegazione: "Nel parlato si sente anche il dativo, ma nello scritto formale si usa il genitivo." },
+      { tipo: "aperta", domanda: "Riscrivi in stile formale con almeno due Nomen-Verb-Verbindungen: «Wir haben entschieden, das Projekt zu stoppen. Die Kunden haben das Konzept kritisiert.»", criteri: "Almeno due strutture nome più verbo corrette; registro formale; grammatica corretta; correggi e dai la versione corretta.", spiegazione: "Esempio: Wir haben die Entscheidung getroffen, das Projekt einzustellen. Die Kunden haben Kritik an dem Konzept geübt." },
+    ],
+  },
+];
+
+/* ================= Dati ================= */
+const KEYS = ["areas", "lessons", "progress", "vocab", "settings", "meta", "sblocchi", "attivita"];
+function normalize(v) { v = v || {}; const o = {}; KEYS.forEach((k) => { o[k] = v[k] && typeof v[k] === "object" ? v[k] : {}; }); return o; }
+function setIn(obj, path, value) {
+  const keys = path.split("/");
+  const root = { ...obj };
+  let cur = root;
+  for (let i = 0; i < keys.length - 1; i++) {
+    const k = keys[i];
+    cur[k] = cur[k] && typeof cur[k] === "object" && !Array.isArray(cur[k]) ? { ...cur[k] } : {};
+    cur = cur[k];
+  }
+  const last = keys[keys.length - 1];
+  if (value === null || value === undefined) delete cur[last]; else cur[last] = value;
+  return root;
+}
+const applyUpdates = (obj, upd) => normalize(Object.keys(upd).reduce((acc, p) => setIn(acc, p, upd[p]), obj));
+function clean(upd) { const o = {}; Object.keys(upd).forEach((k) => { const v = upd[k]; o[k] = v === null || v === undefined ? null : JSON.parse(JSON.stringify(v)); }); return o; }
+
+function seedUpdates(d) {
+  if ((d.meta.seedVersion || 0) >= SEED_VERSION) return null;
+  const upd = {};
+  Object.values(SEED_AREAS).forEach((a) => { if (!d.areas[a.id]) upd["areas/" + a.id] = a; });
+  SEED_LESSONS.forEach((l) => { if (!d.lessons[l.id]) upd["lessons/" + l.id] = { ...l, creata: today(), origine: "iniziale" }; });
+  upd["meta/seedVersion"] = SEED_VERSION;
+  return upd;
+}
+
+const opts = (d) => ({ soglia: Number(d.settings.soglia) || 70, blocco: d.settings.bloccoLivelli !== false, profilo: d.settings.profilo || PROFILO_DEFAULT });
+const areaList = (d) => Object.values(d.areas).filter((a) => a && a.id).sort((a, b) => (a.ordine || 99) - (b.ordine || 99) || String(a.nome).localeCompare(String(b.nome)));
+const livelliOf = (a) => (Array.isArray(a.livelli) && a.livelli.length ? a.livelli : ["Base", "Intermedio", "Avanzato"]);
+const lessonsOf = (d, areaId, livello) => Object.values(d.lessons)
+  .filter((l) => l && l.area === areaId && (!livello || l.livello === livello))
+  .sort((a, b) => (a.ordine || 0) - (b.ordine || 0) || String(a.creata || "").localeCompare(String(b.creata || "")) || String(a.titolo).localeCompare(String(b.titolo)));
+function levelStats(d, a, liv) {
+  const ls = lessonsOf(d, a.id, liv);
+  const done = ls.filter((l) => d.progress[l.id]);
+  const sum = done.reduce((s, l) => s + (d.progress[l.id].best || 0), 0);
+  return { tot: ls.length, done: done.length, avg: done.length ? sum / done.length : 0, progress: ls.length ? sum / (ls.length * 100) : 0 };
+}
+function isUnlocked(d, a, i) {
+  if (i === 0 || !opts(d).blocco) return true;
+  return i <= (d.sblocchi[a.id] || 0);
+}
+function levelPassed(d, a, i) {
+  const st = levelStats(d, a, livelliOf(a)[i]);
+  if (st.tot === 0) return true;
+  return st.done === st.tot && st.avg >= opts(d).soglia;
+}
+function streak(att) { let n = 0; let d = today(); if (!att[d]) d = addDays(d, -1); while (att[d]) { n++; d = addDays(d, -1); } return n; }
+
+/* ================= Correzione ================= */
+function grade(ex, ans) {
+  switch (ex.tipo) {
+    case "multipla": return { punti: ans !== undefined && ans !== "" && Number(ans) === Number(ex.risposta) ? 1 : 0 };
+    case "vf": return { punti: ans !== undefined && ans === String(ex.risposta) ? 1 : 0 };
+    case "numerico": {
+      const v = parseNum(ans); if (v === null) return { punti: 0 };
+      const r = Number(ex.risposta);
+      const tol = ex.tolleranza !== undefined && ex.tolleranza !== null ? Math.abs(Number(ex.tolleranza)) : Math.max(Math.abs(r) * 0.01, 0.005);
+      return { punti: Math.abs(v - r) <= tol + 1e-9 ? 1 : 0 };
+    }
+    case "completa": {
+      const acc = Array.isArray(ex.risposta) ? ex.risposta : [ex.risposta];
+      return { punti: ans && acc.some((a) => norm(a) === norm(ans)) ? 1 : 0 };
+    }
+    case "aperta": return { punti: 0, pending: true };
+    default: return { punti: 0 };
+  }
+}
+function fmtAnswer(ex, ans) {
+  if (ans === undefined || ans === "") return "(nessuna risposta)";
+  if (ex.tipo === "multipla") return (ex.opzioni || [])[Number(ans)] ?? ans;
+  if (ex.tipo === "vf") return ans === "true" ? "Vero" : "Falso";
+  return String(ans);
+}
+function fmtCorrect(ex) {
+  if (ex.tipo === "multipla") return (ex.opzioni || [])[Number(ex.risposta)];
+  if (ex.tipo === "vf") return String(ex.risposta) === "true" ? "Vero" : "Falso";
+  if (ex.tipo === "numerico") return fmtNum(ex.risposta) + (ex.unita ? " " + ex.unita : "");
+  if (ex.tipo === "completa") return (Array.isArray(ex.risposta) ? ex.risposta : [ex.risposta]).join(" / ");
+  return "";
+}
+function parseVoto(t) {
+  const s = String(t || "").trim();
+  const m = s.match(/\{[\s\S]*\}/);
+  if (m) {
+    try {
+      const j = JSON.parse(m[0]);
+      const v = Number(j.voto ?? j.punteggio ?? j.score);
+      if (!isNaN(v)) return { voto: Math.max(0, Math.min(100, Math.round(v))), commento: String(j.commento || j.feedback || "") };
+    } catch (e) {}
+  }
+  const n = parseNum(s.split(/\s|\//)[0]);
+  if (n !== null) return { voto: Math.max(0, Math.min(100, Math.round(n))), commento: "" };
+  return null;
+}
+
+/* ================= Richieste per Claude ================= */
+const isLingua = (a) => a && (a.id === "tedesco" || /tedesco|deutsch|inglese|english|lingua/i.test(a.nome || ""));
+function regole(lingua) {
+  return T(
+    "REGOLE",
+    `- Teoria in italiano, 300-500 parole, con esempi concreti${lingua ? "; spiegazioni in italiano, esempi e frasi nella lingua studiata" : " e numerici dove ha senso"}.`,
+    "- Formattazione della teoria (è una stringa JSON, usa \\n per andare a capo): titoletti con \"## \", elenchi con \"- \", grassetto con **testo**, formule o frasi modello tra accenti gravi (il carattere `), nota finale con \"> \", tabelle con righe \"| a | b |\".",
+    "- Da 6 a 8 esercizi per lezione, di difficoltà crescente, con almeno tre tipi diversi e al massimo un esercizio \"aperta\".",
+    "- Ogni esercizio ha una \"spiegazione\" chiara della soluzione, con i passaggi di calcolo se numerico.",
+    "- Negli esercizi numerici indica l'unità e una tolleranza ragionevole per gli arrotondamenti.",
+    "- Negli esercizi \"completa\" metti un solo spazio ___ ed elenca tutte le varianti accettabili.",
+    lingua ? "- Aggiungi 6-10 \"vocaboli\" utili (sostantivi con articolo), ognuno con una frase d'esempio." : "- Non inserire il campo \"vocaboli\".",
+    "- Rispondi SOLO con il JSON valido, senza testo prima o dopo e senza blocchi di codice."
+  );
+}
+const TIPI = T(
+  "TIPI DI ESERCIZIO",
+  '{"tipo":"multipla","domanda":"...","opzioni":["...","...","...","..."],"risposta":0,"spiegazione":"..."}   (risposta = indice dell\'opzione giusta, da 0)',
+  '{"tipo":"vf","domanda":"affermazione","risposta":true,"spiegazione":"..."}',
+  '{"tipo":"numerico","domanda":"...","risposta":12.5,"tolleranza":0.1,"unita":"%","spiegazione":"..."}',
+  '{"tipo":"completa","domanda":"frase con ___ al posto della parte mancante","risposta":["forma accettata","variante"],"spiegazione":"..."}',
+  '{"tipo":"aperta","domanda":"...","criteri":"cosa deve contenere una risposta completa","spiegazione":"traccia di soluzione"}'
+);
+function promptLezioni(d, area, livello, argomento, n, deboli) {
+  const o = opts(d);
+  const lingua = isLingua(area);
+  const esistenti = lessonsOf(d, area.id).map((l) => `- [${l.livello}] ${l.titolo}${l.argomento ? " (" + l.argomento + ")" : ""}`).join("\n") || "- nessuna";
+  let weak = "";
+  if (deboli) {
+    const w = lessonsOf(d, area.id).filter((l) => d.progress[l.id] && d.progress[l.id].best < o.soglia);
+    const righe = [];
+    w.forEach((l) => {
+      const p = d.progress[l.id];
+      righe.push(`- ${l.titolo}: miglior risultato ${p.best}%`);
+      (p.errori || []).slice(0, 3).forEach((i) => { const ex = (l.esercizi || [])[i]; if (ex) righe.push(`  errore su: ${String(ex.domanda).slice(0, 140)}`); });
+    });
+    if (righe.length) weak = "\nPunti deboli recenti (se pertinenti al livello, riprendili da un'altra angolazione):\n" + righe.join("\n") + "\n";
+  }
+  return T(
+    "Sei l'autore dei contenuti di Gradus, la mia piattaforma di studio personale.",
+    `Chi studia: ${o.profilo}`,
+    "",
+    "RICHIESTA",
+    `Crea ${n} ${n === 1 ? "nuova lezione" : "nuove lezioni"}.`,
+    `Area: ${area.nome} (id: "${area.id}")`,
+    `Livello: ${livello} (livelli dell'area: ${livelliOf(area).join(", ")}). Tara profondità e difficoltà su questo livello.`,
+    `Argomento: ${argomento.trim() || "scegli tu un argomento utile, coerente con il livello e non ancora trattato"}`,
+    "",
+    "Lezioni già presenti nell'area (non ripeterle):",
+    esistenti,
+    weak,
+    regole(lingua),
+    "",
+    "FORMATO",
+    `{"lezioni":[{"titolo":"...","area":"${area.id}","livello":"${livello}","argomento":"...","minuti":20,"teoria":"...",${lingua ? '"vocaboli":[{"de":"die Abweichung","it":"lo scostamento","esempio":"..."}],' : ""}"esercizi":[...]}]}`,
+    "",
+    TIPI
+  );
+}
+function promptArea(d, nome, obiettivo) {
+  const o = opts(d);
+  const id = slug(nome);
+  const lingua = /tedesco|inglese|francese|spagnolo|lingua|deutsch|english/i.test(nome);
+  return T(
+    "Sei l'autore dei contenuti di Gradus, la mia piattaforma di studio personale.",
+    `Chi studia: ${o.profilo}`,
+    "",
+    "RICHIESTA",
+    `Crea una nuova area di studio: "${nome}".${obiettivo.trim() ? " Obiettivo: " + obiettivo.trim() : ""}`,
+    "Definisci 3 livelli (per le lingue usa i livelli QCER, per il resto Base, Intermedio, Avanzato) e scrivi una prima lezione per ciascun livello.",
+    "",
+    regole(lingua),
+    "",
+    "FORMATO",
+    `{"area":{"id":"${id}","nome":"${nome}","descrizione":"una frase","colore":"#RRGGBB scuro e leggibile","livelli":["...","...","..."]},"lezioni":[{"titolo":"...","area":"${id}","livello":"...","argomento":"...","minuti":20,"teoria":"...",${lingua ? '"vocaboli":[{"de":"...","it":"...","esempio":"..."}],' : ""}"esercizi":[...]}]}`,
+    "",
+    TIPI
+  );
+}
+function promptCorrezione(area, l, ex, risposta) {
+  const lingua = isLingua(area);
+  return T(
+    "Correggi la mia risposta a un esercizio di Gradus.",
+    `Area: ${area.nome}, livello ${l.livello}. Lezione: ${l.titolo}`,
+    `Domanda: ${ex.domanda}`,
+    `Criteri di valutazione: ${ex.criteri || "-"}`,
+    `Traccia di soluzione: ${ex.spiegazione || "-"}`,
+    "",
+    "La mia risposta:",
+    risposta || "(vuota)",
+    "",
+    `Valuta da 0 a 100 rispetto ai criteri.${lingua ? " Correggi anche grammatica, ordine delle parole e lessico, e riporta la versione corretta." : ""}`,
+    'Rispondi SOLO con JSON: {"voto": numero da 0 a 100, "commento": "punti di forza, cosa manca, versione migliorata"}'
+  );
+}
+function promptErrori(area, l, idx, ans) {
+  const righe = idx.map((i, k) => {
+    const ex = l.esercizi[i];
+    return T(`${k + 1}. ${ex.domanda}`, `   Mia risposta: ${fmtAnswer(ex, ans[i])}`, `   Risposta corretta: ${fmtCorrect(ex)}`);
+  });
+  return T(
+    `Sto studiando con Gradus: ${area.nome}, livello ${l.livello}, lezione «${l.titolo}».`,
+    "Ho sbagliato questi esercizi. Per ognuno spiegami il ragionamento corretto passo per passo e l'errore concettuale più probabile, poi proponimi un esercizio simile da provare, con la soluzione in fondo.",
+    "",
+    ...righe
+  );
+}
+
+/* ================= Importazione ================= */
+const COLORI = ["#1F7A6B", "#A23B72", "#B07A1F", "#3A5BA0", "#6B4FA0", "#2F6F8F", "#8A4B2A", "#4F7A2A"];
+function parseImport(text, d) {
+  let s = String(text || "").trim().replace(/^```(?:json)?/i, "").replace(/```\s*$/, "").trim();
+  const start = s.search(/[\[{]/); if (start > 0) s = s.slice(start);
+  let j;
+  try { j = JSON.parse(s); } catch (e) { throw new Error("Il testo non è JSON valido. Copia la risposta di Claude per intero, dalla prima all'ultima parentesi graffa."); }
+  const aree = [], lezioni = [], vocaboli = [];
+  if (Array.isArray(j)) lezioni.push(...j);
+  else {
+    if (j.area && typeof j.area === "object") aree.push(j.area);
+    if (Array.isArray(j.aree)) aree.push(...j.aree);
+    if (Array.isArray(j.lezioni)) lezioni.push(...j.lezioni);
+    if (Array.isArray(j.lessons)) lezioni.push(...j.lessons);
+    if (j.lezione) lezioni.push(j.lezione);
+    if (j.titolo && Array.isArray(j.esercizi)) lezioni.push(j);
+    if (!j.titolo && Array.isArray(j.vocaboli)) vocaboli.push(...j.vocaboli);
+  }
+  const upd = {}, errors = [], known = { ...d.areas };
+  let nAree = 0, nLez = 0, nVoc = 0; const dove = {};
+  aree.forEach((a) => {
+    if (!a || !a.nome) { errors.push("Un'area non ha il nome e non è stata importata."); return; }
+    const id = slug(a.id || a.nome);
+    const area = {
+      id, nome: String(a.nome), descrizione: String(a.descrizione || ""),
+      colore: /^#[0-9a-f]{6}$/i.test(a.colore || "") ? a.colore : COLORI[Object.keys(known).length % COLORI.length],
+      livelli: Array.isArray(a.livelli) && a.livelli.length ? a.livelli.map(String) : ["Base", "Intermedio", "Avanzato"],
+      ordine: known[id] ? known[id].ordine : Object.keys(known).length + 1,
+    };
+    known[id] = area; upd["areas/" + id] = area; nAree++;
+  });
+  lezioni.forEach((l, k) => {
+    if (!l || !l.titolo) { errors.push(`Lezione ${k + 1}: manca il titolo.`); return; }
+    const key = slug(l.area || "");
+    const area = known[key] || Object.values(known).find((a) => slug(a.nome) === key);
+    if (!area) { errors.push(`«${l.titolo}»: l'area «${l.area}» non esiste. Creala prima o correggi il campo area.`); return; }
+    const livs = livelliOf(area);
+    const liv = livs.find((x) => String(x).toLowerCase() === String(l.livello || "").toLowerCase()) || livs[0];
+    const esercizi = (Array.isArray(l.esercizi) ? l.esercizi : []).filter((e) => e && e.tipo && e.domanda);
+    if (!esercizi.length) errors.push(`«${l.titolo}»: nessun esercizio valido, importata solo la teoria.`);
+    let id = slug(area.id + "-" + l.titolo);
+    while (d.lessons[id] || upd["lessons/" + id]) id = slug(area.id + "-" + l.titolo) + "-" + Math.random().toString(36).slice(2, 5);
+    upd["lessons/" + id] = {
+      id, area: area.id, livello: liv, titolo: String(l.titolo), argomento: String(l.argomento || ""), minuti: Number(l.minuti) || 15,
+      teoria: String(l.teoria || ""), vocaboli: Array.isArray(l.vocaboli) ? l.vocaboli.filter((v) => v && v.de && v.it) : [],
+      esercizi, creata: today(), origine: "claude",
+    };
+    nLez++; dove[area.id + "|" + liv] = { area: area.id, nome: area.nome, liv };
+  });
+  vocaboli.forEach((v) => { if (v && v.de && v.it) { const id = slug(v.de); upd["vocab/" + id] = { id, de: v.de, it: v.it, esempio: v.esempio || "", box: 1, due: today(), creata: today() }; nVoc++; } });
+  if (!nAree && !nLez && !nVoc && !errors.length) errors.push("Non ho trovato aree, lezioni o vocaboli nel testo.");
+  return { upd, errors, nAree, nLez, nVoc, dove: Object.values(dove) };
+}
+
+/* ================= Firebase ================= */
+function readConfig() { return FIREBASE_CONFIG || lsGet("gradus_fbconfig"); }
+function parseConfigText(t) {
+  const s = String(t || ""); const a = s.indexOf("{"), b = s.lastIndexOf("}");
+  if (a < 0 || b < a) throw new Error("Non trovo l'oggetto { ... } della configurazione.");
+  const body = s.slice(a, b + 1).replace(/([{,]\s*)([A-Za-z_$][\w$]*)\s*:/g, '$1"$2":').replace(/'/g, '"').replace(/,\s*}/g, "}");
+  let c; try { c = JSON.parse(body); } catch (e) { throw new Error("La configurazione non è leggibile. Incolla l'oggetto firebaseConfig così com'è."); }
+  if (!c.apiKey || !c.projectId) throw new Error("Mancano apiKey o projectId.");
+  if (!c.databaseURL) throw new Error("Manca databaseURL: crea prima il Realtime Database e poi ricopia la configurazione.");
+  return c;
+}
+function initFirebase(c) {
+  if (!c || !window.firebase) return null;
+  try { if (!firebase.apps.length) firebase.initializeApp(c); return { auth: firebase.auth(), db: firebase.database() }; }
+  catch (e) { console.error(e); return null; }
+}
+function authMsg(e) {
+  const c = (e && e.code) || "";
+  if (/invalid-credential|wrong-password|user-not-found|invalid-login/.test(c)) return "Email o password non corretti.";
+  if (/weak-password/.test(c)) return "La password deve avere almeno 6 caratteri.";
+  if (/email-already-in-use/.test(c)) return "Esiste già un account con questa email: usa «Accedi».";
+  if (/invalid-email/.test(c)) return "L'indirizzo email non è valido.";
+  if (/operation-not-allowed/.test(c)) return "Attiva il metodo Email/password in Firebase, sezione Authentication.";
+  if (/network/.test(c)) return "Connessione assente. Riprova quando sei online.";
+  return (e && e.message) || "Accesso non riuscito.";
+}
+
+/* ================= Icone ================= */
+function Icon({ n }) {
+  const p = { fill: "none", stroke: "currentColor", strokeWidth: 1.7, strokeLinecap: "round", strokeLinejoin: "round", viewBox: "0 0 24 24", "aria-hidden": true };
+  if (n === "oggi") return <svg {...p}><rect x="3.5" y="5" width="17" height="15" rx="2.5" /><path d="M3.5 10h17M8 3v4M16 3v4" /></svg>;
+  if (n === "aree") return <svg {...p}><path d="M3 20h5v-5h5v-5h5V5h3" /></svg>;
+  if (n === "ripasso") return <svg {...p}><rect x="4" y="7" width="12" height="13" rx="2" /><path d="M8 4h10a2 2 0 0 1 2 2v11" /></svg>;
+  if (n === "contenuti") return <svg {...p}><circle cx="12" cy="12" r="8.5" /><path d="M12 8v8M8 12h8" /></svg>;
+  if (n === "opzioni") return <svg {...p}><path d="M4 7h9M17 7h3M4 17h3M11 17h9" /><circle cx="15" cy="7" r="2" /><circle cx="9" cy="17" r="2" /></svg>;
+  if (n === "back") return <svg {...p}><path d="M14.5 5.5L8 12l6.5 6.5" /></svg>;
+  if (n === "lock") return <svg {...p} strokeWidth="2"><rect x="5" y="11" width="14" height="10" rx="2" /><path d="M8 11V8a4 4 0 0 1 8 0v3" /></svg>;
+  return null;
+}
+const Logo = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M3 20h6v-6h6V8h6" /></svg>;
+
+/* ================= Scala (il segno distintivo) ================= */
+function Stairs({ area, data, big }) {
+  const livs = livelliOf(area);
+  const n = livs.length, W = 300, H = big ? 118 : 60, gap = 5;
+  const w = (W - gap * (n - 1)) / n;
+  const info = livs.map((lv, i) => ({ lv, st: levelStats(data, area, lv), un: isUnlocked(data, area, i) }));
+  return (
+    <div className={"stairs" + (big ? " big" : "")}>
+      <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`${area.nome}: ` + info.map((x) => `${x.lv} ${Math.round(x.st.progress * 100)}%`).join(", ")}>
+        {info.map((x, i) => {
+          const h = H * (i + 1) / n, xx = i * (w + gap), y = H - h, fh = h * x.st.progress;
+          return (
+            <g key={x.lv}>
+              <rect x={xx} y={y} width={w} height={h} rx="3" fill={area.colore} fillOpacity={x.un ? 0.17 : 0.07} />
+              {fh > 0 && <rect className="fill" style={{ animationDelay: i * 120 + "ms" }} x={xx} y={H - fh} width={w} height={fh} rx="3" fill={area.colore} />}
+              {!x.un && <g transform={`translate(${xx + w / 2 - 6},${y + h / 2 - 8})`} stroke="currentColor" fill="none" strokeWidth="1.5" opacity=".6"><rect x="0.75" y="6" width="10.5" height="8.5" rx="1.5" /><path d="M3 6V4a3 3 0 0 1 6 0v2" /></g>}
+            </g>
+          );
+        })}
+      </svg>
+      <div className="stairs-labels" style={{ gridTemplateColumns: `repeat(${n},1fr)` }}>
+        {info.map((x) => (
+          <div key={x.lv}><b>{x.lv}</b>{!x.un ? "bloccato" : x.st.tot === 0 ? "nessuna lezione" : `${Math.round(x.st.progress * 100)}%`}</div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ================= Pagine ================= */
+function Oggi({ data }) {
+  const o = opts(data);
+  const done = Object.keys(data.progress).filter((id) => data.lessons[id]);
+  const avg = done.length ? Math.round(done.reduce((s, id) => s + (data.progress[id].best || 0), 0) / done.length) : 0;
+  const st = streak(data.attivita);
+  const due = Object.values(data.vocab).filter((v) => !v.due || v.due <= today()).length;
+  const aree = areaList(data);
+  const sugg = [];
+  aree.forEach((a) => {
+    const livs = livelliOf(a); let pick = null, motivo = "";
+    for (let i = 0; i < livs.length && !pick; i++) {
+      if (!isUnlocked(data, a, i)) break;
+      pick = lessonsOf(data, a.id, livs[i]).find((l) => !data.progress[l.id]); motivo = "Nuova";
+    }
+    if (!pick) {
+      pick = lessonsOf(data, a.id).filter((l) => data.progress[l.id] && data.progress[l.id].best < o.soglia).sort((x, y) => data.progress[x.id].best - data.progress[y.id].best)[0];
+      motivo = "Da ripetere";
+    }
+    if (pick) sugg.push({ l: pick, a, motivo });
+  });
+  const deboli = Object.values(data.lessons).filter((l) => data.progress[l.id] && data.progress[l.id].best < o.soglia && data.areas[l.area])
+    .sort((x, y) => data.progress[x.id].best - data.progress[y.id].best).slice(0, 5);
+  const oggiStr = new Date().toLocaleDateString("it-IT", { weekday: "long", day: "numeric", month: "long" });
+  let frase;
+  if (!done.length) frase = "Non hai ancora svolto lezioni. Parti da una delle proposte qui sotto.";
+  else frase = `${st > 1 ? `Studi da ${st} giorni di fila.` : st === 1 ? "Serie di studio avviata." : "Oggi è un buon giorno per riprendere."} Hai svolto ${done.length} ${done.length === 1 ? "lezione" : "lezioni"}, con una media del ${avg}% sui migliori risultati.`;
+  return (
+    <>
+      <p className="date">{oggiStr.charAt(0).toUpperCase() + oggiStr.slice(1)}</p>
+      <h1 className="page">Un gradino alla volta.</h1>
+      <p className="lede">{frase}</p>
+      {due > 0 && (
+        <div className="panel row" style={{ marginTop: 16 }}>
+          <div style={{ flex: 1, minWidth: 180 }}><b>{due} {due === 1 ? "parola da ripassare" : "parole da ripassare"}</b><div className="muted small">Il ripasso richiede pochi minuti.</div></div>
+          <a className="btn small" href="#/ripasso">Inizia il ripasso</a>
+        </div>
+      )}
+      {sugg.length > 0 && <h2 className="sec">Da dove riprendere</h2>}
+      {sugg.map(({ l, a, motivo }) => (
+        <a key={l.id} className="sugg" href={"#/lezione/" + encodeURIComponent(l.id)} style={{ "--c": a.colore }}>
+          <div><div className="sugg-t">{l.titolo}</div><div className="sugg-m">{a.nome}, {l.livello}. {motivo}{data.progress[l.id] ? `, miglior risultato ${data.progress[l.id].best}%` : ""}</div></div>
+          <span className="go">{data.progress[l.id] ? "Ripeti" : "Inizia"}</span>
+        </a>
+      ))}
+      <h2 className="sec">Le tue aree</h2>
+      <div>
+        {aree.map((a) => {
+          const ls = lessonsOf(data, a.id);
+          return (
+            <a key={a.id} className="area-row" href={"#/area/" + a.id} style={{ "--c": a.colore }}>
+              <div className="area-head"><span className="swatch" /><span className="area-name">{a.nome}</span><span className="area-meta">{ls.filter((l) => data.progress[l.id]).length} di {ls.length} lezioni</span></div>
+              <Stairs area={a} data={data} />
+            </a>
+          );
+        })}
+      </div>
+      {deboli.length > 0 && (
+        <>
+          <h2 className="sec">Da rinforzare</h2>
+          {deboli.map((l) => (
+            <a key={l.id} className="lrow" href={"#/lezione/" + encodeURIComponent(l.id)}>
+              <div><div className="lrow-t">{l.titolo}</div><div className="lrow-m"><span>{data.areas[l.area].nome}</span><span>{l.livello}</span></div></div>
+              <span className="badge low">{data.progress[l.id].best}%</span>
+            </a>
+          ))}
+        </>
+      )}
+    </>
+  );
+}
+
+function Aree({ data }) {
+  return (
+    <>
+      <h1 className="page">Aree di studio</h1>
+      <p className="lede">Ogni area sale per livelli. Un livello si sblocca quando completi tutte le lezioni del precedente con almeno il {opts(data).soglia}% di media.</p>
+      <div style={{ marginTop: 18 }}>
+        {areaList(data).map((a) => {
+          const ls = lessonsOf(data, a.id);
+          return (
+            <a key={a.id} className="area-row" href={"#/area/" + a.id} style={{ "--c": a.colore }}>
+              <div className="area-head"><span className="swatch" /><span className="area-name">{a.nome}</span><span className="area-meta">{ls.length} lezioni</span></div>
+              {a.descrizione && <p className="area-desc">{a.descrizione}</p>}
+              <Stairs area={a} data={data} />
+            </a>
+          );
+        })}
+      </div>
+      <div className="row" style={{ marginTop: 22 }}><a className="btn ghost" href="#/contenuti/nuova">Aggiungi un'area</a></div>
+    </>
+  );
+}
+
+function Area({ data, id, apply }) {
+  const a = data.areas[id];
+  const livs = a ? livelliOf(a) : [];
+  const unl = livs.map((_, i) => (a ? isUnlocked(data, a, i) : false));
+  const [idx, setIdx] = useState(Math.max(0, unl.lastIndexOf(true)));
+  if (!a) return <><p className="lede">Quest'area non esiste più.</p><a className="btn ghost" href="#/aree">Vai alle aree</a></>;
+  const liv = livs[idx] || livs[0];
+  const locked = !unl[idx];
+  const ls = lessonsOf(data, a.id, liv);
+  const soglia = opts(data).soglia;
+  return (
+    <div style={{ "--c": a.colore }}>
+      <a className="back" href="#/aree"><Icon n="back" />Aree</a>
+      <h1 className="page">{a.nome}</h1>
+      {a.descrizione && <p className="lede">{a.descrizione}</p>}
+      <div style={{ margin: "22px 0 8px" }}><Stairs area={a} data={data} big /></div>
+      <div className="seg" role="group" aria-label="Livello">
+        {livs.map((lv, i) => (
+          <button key={lv} aria-pressed={i === idx} onClick={() => setIdx(i)}>{!unl[i] && <Icon n="lock" />}{lv}</button>
+        ))}
+      </div>
+      {locked && (
+        <div className="note">
+          Completa tutte le lezioni del livello {livs[idx - 1]} con almeno il {soglia}% di media per sbloccare {liv}.{" "}
+          <button className="linkbtn" onClick={() => apply({ ["sblocchi/" + a.id]: idx })}>Sblocca comunque</button>
+        </div>
+      )}
+      {ls.length === 0 && <div className="note">Nessuna lezione in questo livello. Chiedine di nuove a Claude.</div>}
+      {ls.map((l) => {
+        const p = data.progress[l.id];
+        const inner = (
+          <>
+            <div><div className="lrow-t">{l.titolo}</div><div className="lrow-m">{l.argomento && <span>{l.argomento}</span>}<span>{l.minuti || 15} min</span>{p && <span>{p.storico ? p.storico.length : 1} {p.storico && p.storico.length === 1 ? "tentativo" : "tentativi"}</span>}</div></div>
+            <span className={"badge" + (p ? (p.best >= soglia ? " ok" : " low") : "")}>{p ? p.best + "%" : "Da fare"}</span>
+          </>
+        );
+        return locked
+          ? <div key={l.id} className="lrow locked" aria-disabled="true">{inner}</div>
+          : <a key={l.id} className="lrow" href={"#/lezione/" + encodeURIComponent(l.id)}>{inner}</a>;
+      })}
+      <div className="row" style={{ marginTop: 20 }}>
+        <a className="btn ghost" href={`#/contenuti/${a.id}/${encodeURIComponent(liv)}`}>Nuove lezioni per {liv}</a>
+      </div>
+    </div>
+  );
+}
+
+function Esercizio({ ex, i, value, onChange, esito, voto, draft, onDraft, onVoto, onCopia }) {
+  const done = !!esito;
+  const aperta = ex.tipo === "aperta";
+  const ok = done && !aperta && esito.punti === 1;
+  const optCls = (val, correct) => {
+    let c = "opt";
+    if (String(value) === String(val)) c += " sel";
+    if (done) { if (String(val) === String(correct)) c += " good"; else if (String(value) === String(val)) c += " bad"; }
+    return c;
+  };
+  let body = null;
+  if (ex.tipo === "multipla") {
+    body = (ex.opzioni || []).map((o, k) => (
+      <button type="button" key={k} className={optCls(k, Number(ex.risposta))} disabled={done} aria-pressed={String(value) === String(k)} onClick={() => onChange(String(k))}>{o}</button>
+    ));
+  } else if (ex.tipo === "vf") {
+    body = (
+      <div className="vf">
+        {[["true", "Vero"], ["false", "Falso"]].map(([v, t]) => (
+          <button type="button" key={v} className={optCls(v, String(ex.risposta))} disabled={done} aria-pressed={value === v} onClick={() => onChange(v)}>{t}</button>
+        ))}
+      </div>
+    );
+  } else if (ex.tipo === "numerico") {
+    body = (
+      <div className="num">
+        <input inputMode="decimal" value={value || ""} disabled={done} placeholder="La tua risposta" aria-label={`Risposta all'esercizio ${i + 1}`} onChange={(e) => onChange(e.target.value)} />
+        {ex.unita && <span className="unit">{ex.unita}</span>}
+      </div>
+    );
+  } else if (ex.tipo === "completa") {
+    const parts = String(ex.domanda).split(/_{3,}/);
+    const inp = <input className={parts.length > 1 ? "gap" : ""} value={value || ""} disabled={done} autoCapitalize="off" autoCorrect="off" spellCheck="false" aria-label={`Risposta all'esercizio ${i + 1}`} onChange={(e) => onChange(e.target.value)} />;
+    body = parts.length > 1
+      ? <p className="ex-q">{parts[0]}{inp}{parts.slice(1).join("___")}</p>
+      : <><p className="ex-q">{ex.domanda}</p>{inp}</>;
+  } else if (aperta) {
+    body = <textarea rows={5} value={value || ""} disabled={done} placeholder="Scrivi qui la tua risposta" aria-label={`Risposta all'esercizio ${i + 1}`} onChange={(e) => onChange(e.target.value)} />;
+  }
+  return (
+    <section className="ex">
+      <div className="ex-head">
+        <span className="ex-n">Esercizio {i + 1}</span>
+        {done && !aperta && <span className={"mark " + (ok ? "ok" : "ko")}>{ok ? "Corretto" : "Da rivedere"}</span>}
+        {done && aperta && (voto ? <span className="mark ok">Voto {voto.voto}/100</span> : <span className="mark wait">Da valutare</span>)}
+      </div>
+      {ex.tipo !== "completa" && <p className="ex-q">{ex.domanda}</p>}
+      {body}
+      {done && !aperta && !ok && <p className="sol"><b>Risposta corretta:</b> {fmtCorrect(ex)}</p>}
+      {done && aperta && !voto && (
+        <div className="grade">
+          <p className="muted small" style={{ margin: 0 }}>Questa risposta la valuta Claude: copia la richiesta, incollala in una chat e riporta qui il risultato. Puoi anche scrivere direttamente un voto da 0 a 100.</p>
+          <div className="row"><button className="btn small ghost" onClick={onCopia}>Copia per la correzione</button><a className="btn small ghost" href="https://claude.ai/new" target="_blank" rel="noopener">Apri Claude</a></div>
+          <textarea rows={3} value={draft || ""} placeholder="Incolla qui la risposta di Claude" onChange={(e) => onDraft(e.target.value)} />
+          <div><button className="btn small" disabled={!draft} onClick={onVoto}>Registra il voto</button></div>
+        </div>
+      )}
+      {done && aperta && voto && voto.commento && <p className="spieg" style={{ whiteSpace: "pre-wrap" }}>{voto.commento}</p>}
+      {done && ex.spiegazione && <p className="spieg">{aperta ? "Traccia: " : ""}{ex.spiegazione}</p>}
+    </section>
+  );
+}
+
+function Lezione({ data, id, apply, notify }) {
+  const l = data.lessons[id];
+  const [ans, setAns] = useState({});
+  const [res, setRes] = useState(null);
+  const [voti, setVoti] = useState({});
+  const [draft, setDraft] = useState({});
+  if (!l) return <><p className="lede">Questa lezione non esiste più.</p><a className="btn ghost" href="#/aree">Vai alle aree</a></>;
+  const area = data.areas[l.area] || { id: l.area, nome: l.area, colore: "#47526B", livelli: [] };
+  const es = Array.isArray(l.esercizi) ? l.esercizi : [];
+  const o = opts(data);
+  const p = data.progress[id];
+  const vocaboli = Array.isArray(l.vocaboli) ? l.vocaboli : [];
+  const nuove = vocaboli.filter((v) => !data.vocab[slug(v.de)]);
+
+  const scoreOf = (esiti, v) => es.length ? es.reduce((s, ex, i) => s + (ex.tipo === "aperta" ? (v[i] ? v[i].voto / 100 : 0) : esiti[i].punti), 0) / es.length * 100 : 0;
+  const save = (esiti, v, ts) => {
+    const score = Math.round(scoreOf(esiti, v));
+    const errori = es.map((ex, i) => (ex.tipo !== "aperta" && !esiti[i].punti ? i : -1)).filter((i) => i >= 0);
+    const prev = data.progress[id] || {};
+    let storico = (prev.storico || []).filter((x) => x.t !== ts);
+    storico.push({ t: ts, d: today(), p: score });
+    storico = storico.slice(-30);
+    apply({
+      ["progress/" + id]: { best: Math.max(...storico.map((x) => x.p)), last: score, storico, errori, ultimo: today() },
+      ["attivita/" + today()]: true,
+    });
+  };
+  const correggi = () => {
+    const vuoti = es.filter((ex, i) => ans[i] === undefined || String(ans[i]).trim() === "").length;
+    if (vuoti && !confirm(`${vuoti} ${vuoti === 1 ? "esercizio è" : "esercizi sono"} senza risposta. Correggere comunque?`)) return;
+    const esiti = es.map((ex, i) => grade(ex, ans[i]));
+    const ts = Date.now();
+    setRes({ esiti, ts });
+    save(esiti, voti, ts);
+    setTimeout(() => { const el = document.getElementById("risultato"); if (el) el.scrollIntoView({ behavior: "smooth", block: "start" }); }, 60);
+  };
+  const riprova = () => { setAns({}); setRes(null); setVoti({}); setDraft({}); const el = document.getElementById("esercizi"); if (el) el.scrollIntoView({ block: "start" }); };
+  const registra = (i) => {
+    const v = parseVoto(draft[i]);
+    if (!v) { notify("Non trovo un voto: incolla la risposta di Claude o scrivi un numero da 0 a 100."); return; }
+    const nv = { ...voti, [i]: v }; setVoti(nv); save(res.esiti, nv, res.ts);
+  };
+  const aggiungiVocaboli = () => {
+    const upd = {};
+    nuove.forEach((v) => { const vid = slug(v.de); upd["vocab/" + vid] = { id: vid, de: v.de, it: v.it, esempio: v.esempio || "", box: 1, due: today(), creata: today(), lezione: id }; });
+    apply(upd); notify(`${nuove.length} ${nuove.length === 1 ? "parola aggiunta" : "parole aggiunte"} al ripasso.`);
+  };
+  const elimina = () => {
+    if (!confirm(`Eliminare la lezione «${l.titolo}» e i suoi risultati?`)) return;
+    apply({ ["lessons/" + id]: null, ["progress/" + id]: null });
+    go("area/" + area.id);
+  };
+  const score = res ? Math.round(scoreOf(res.esiti, voti)) : 0;
+  const pending = res ? es.filter((ex, i) => ex.tipo === "aperta" && !voti[i]).length : 0;
+  const errori = res ? es.map((ex, i) => (ex.tipo !== "aperta" && !res.esiti[i].punti ? i : -1)).filter((i) => i >= 0) : [];
+
+  return (
+    <div style={{ "--c": area.colore }}>
+      <a className="back" href={"#/area/" + area.id}><Icon n="back" />{area.nome}, {l.livello}</a>
+      <h1 className="page">{l.titolo}</h1>
+      <div className="lesson-meta">
+        {l.argomento && <span>{l.argomento}</span>}
+        <span>{l.minuti || 15} minuti</span>
+        <span>{es.length} esercizi</span>
+        {p && <span>Miglior risultato {p.best}%</span>}
+      </div>
+      <div className="teoria" dangerouslySetInnerHTML={{ __html: renderMd(l.teoria) }} />
+
+      {vocaboli.length > 0 && (
+        <>
+          <h2 className="sec">Lessico</h2>
+          <table className="vocab"><tbody>
+            {vocaboli.map((v) => <tr key={v.de}><td>{v.de}</td><td>{v.it}{v.esempio && <span className="es">{v.esempio}</span>}</td></tr>)}
+          </tbody></table>
+          <div className="row" style={{ marginTop: 12 }}>
+            {nuove.length ? <button className="btn small ghost" onClick={aggiungiVocaboli}>Aggiungi {nuove.length} {nuove.length === 1 ? "parola" : "parole"} al ripasso</button>
+              : <span className="muted small">Tutte le parole sono già nel ripasso.</span>}
+          </div>
+        </>
+      )}
+
+      <h2 className="sec" id="esercizi">Esercizi</h2>
+      {es.length === 0 && <p className="muted">Questa lezione non ha esercizi.</p>}
+      {es.map((ex, i) => (
+        <Esercizio key={i} ex={ex} i={i} value={ans[i]} onChange={(v) => setAns({ ...ans, [i]: v })}
+          esito={res ? res.esiti[i] : null} voto={voti[i]} draft={draft[i]} onDraft={(t) => setDraft({ ...draft, [i]: t })}
+          onVoto={() => registra(i)}
+          onCopia={async () => { const ok = await copyText(promptCorrezione(area, l, ex, ans[i])); notify(ok ? "Copiato. Incollalo in una chat con Claude." : "Copia non riuscita."); }} />
+      ))}
+
+      {es.length > 0 && !res && <div className="row" style={{ marginTop: 18 }}><button className="btn" onClick={correggi}>Correggi</button></div>}
+
+      {res && (
+        <div className="result" id="risultato">
+          <div className="score">{score}<small>%</small></div>
+          <p style={{ margin: "10px 0 14px" }}>
+            {pending > 0
+              ? `${pending === 1 ? "Manca il voto di una risposta aperta" : `Mancano i voti di ${pending} risposte aperte`}: per ora conta zero.`
+              : score >= o.soglia ? "Lezione superata. Il risultato conta per lo sblocco del livello successivo." : `Sotto la soglia del ${o.soglia}%. Rileggi i passaggi segnati e riprova.`}
+          </p>
+          <div className="row">
+            <button className="btn" onClick={riprova}>Riprova</button>
+            {errori.length > 0 && <button className="btn ghost" onClick={async () => { const ok = await copyText(promptErrori(area, l, errori, ans)); notify(ok ? "Copiato. Incollalo in una chat con Claude." : "Copia non riuscita."); }}>Chiedi spiegazioni a Claude</button>}
+            <a className="btn ghost" href={"#/area/" + area.id}>Torna all'area</a>
+          </div>
+        </div>
+      )}
+
+      <div style={{ marginTop: 40 }}><button className="linkbtn" onClick={elimina}>Elimina questa lezione</button></div>
+    </div>
+  );
+}
+
+function Ripasso({ data, apply, notify }) {
+  const all = Object.values(data.vocab).filter((v) => v && v.de).sort((a, b) => a.de.localeCompare(b.de, "de"));
+  const oggi = today();
+  const due = all.filter((v) => !v.due || v.due <= oggi);
+  const [sess, setSess] = useState(null);
+  const [dir, setDir] = useState("de");
+  const [form, setForm] = useState({ de: "", it: "", esempio: "" });
+  const boxes = [1, 2, 3, 4, 5].map((b) => all.filter((v) => (v.box || 1) === b).length);
+  const colors = ["#B3362B", "#C9772B", "#B89A2A", "#5B9A62", "#2C7A50"];
+
+  const start = () => setSess({ q: shuffle(due.map((v) => v.id)).slice(0, 25), i: 0, show: false, ok: 0, ko: 0, rip: {} });
+  const answer = (known) => {
+    const vid = sess.q[sess.i]; const v = data.vocab[vid];
+    if (v) {
+      const box = known ? Math.min((v.box || 1) + 1, 5) : 1;
+      apply({ ["vocab/" + vid]: { ...v, box, due: known ? addDays(oggi, INTERVALLI[box]) : addDays(oggi, 1), visto: oggi }, ["attivita/" + oggi]: true });
+    }
+    let q = sess.q, rip = sess.rip;
+    if (!known && !rip[vid]) { q = [...q, vid]; rip = { ...rip, [vid]: true }; }
+    setSess({ ...sess, q, rip, i: sess.i + 1, show: false, ok: sess.ok + (known ? 1 : 0), ko: sess.ko + (known ? 0 : 1) });
+  };
+  const aggiungi = () => {
+    if (!form.de.trim() || !form.it.trim()) return;
+    const vid = slug(form.de);
+    apply({ ["vocab/" + vid]: { id: vid, de: form.de.trim(), it: form.it.trim(), esempio: form.esempio.trim(), box: 1, due: oggi, creata: oggi } });
+    setForm({ de: "", it: "", esempio: "" }); notify("Parola aggiunta.");
+  };
+
+  if (sess) {
+    if (sess.i >= sess.q.length) {
+      return (
+        <>
+          <h1 className="page">Ripasso finito</h1>
+          <p className="lede">{sess.ok} {sess.ok === 1 ? "risposta saputa" : "risposte sapute"}, {sess.ko} da rivedere. Le parole sbagliate tornano domani, quelle sapute più avanti.</p>
+          <button className="btn" onClick={() => setSess(null)}>Chiudi</button>
+        </>
+      );
+    }
+    const v = data.vocab[sess.q[sess.i]] || { de: "?", it: "?" };
+    const front = dir === "de" ? v.de : v.it, back = dir === "de" ? v.it : v.de;
+    return (
+      <>
+        <div className="row" style={{ justifyContent: "space-between" }}>
+          <span className="muted small">Carta {sess.i + 1} di {sess.q.length}</span>
+          <button className="linkbtn" onClick={() => setSess(null)}>Interrompi</button>
+        </div>
+        <div className="card">
+          <div className="front">{front}</div>
+          {sess.show ? <><div className="back">{back}</div>{v.esempio && <div className="esempio">{v.esempio}</div>}</> : <div className="muted small">Pensa alla traduzione, poi girala.</div>}
+        </div>
+        {!sess.show
+          ? <button className="btn" style={{ width: "100%" }} onClick={() => setSess({ ...sess, show: true })}>Mostra la traduzione</button>
+          : <div className="grid2"><button className="btn ghost" onClick={() => answer(false)}>Non la sapevo</button><button className="btn" onClick={() => answer(true)}>La sapevo</button></div>}
+      </>
+    );
+  }
+
+  return (
+    <>
+      <h1 className="page">Ripasso</h1>
+      <p className="lede">
+        {all.length ? `${all.length} ${all.length === 1 ? "parola" : "parole"} nel ripasso, ${due.length} da ripassare oggi. Ogni risposta giusta sposta la parola più avanti nel tempo; ogni errore la riporta a domani.`
+          : "Il ripasso si riempie con il lessico delle lezioni di tedesco: apri una lezione e premi «Aggiungi al ripasso», oppure inserisci una parola qui sotto."}
+      </p>
+      {all.length > 0 && (
+        <>
+          <div className="boxes" title="Distribuzione per scatola, dalla meno alla più consolidata">
+            {boxes.map((n, k) => n > 0 && <span key={k} style={{ width: (n / all.length * 100) + "%", background: colors[k] }} />)}
+          </div>
+          <p className="muted small" style={{ margin: "0 0 16px" }}>A sinistra le parole appena inserite o sbagliate, a destra quelle consolidate.</p>
+          <div className="row">
+            <button className="btn" disabled={!due.length} onClick={start}>{due.length ? `Ripassa ${Math.min(due.length, 25)} ${Math.min(due.length, 25) === 1 ? "parola" : "parole"}` : "Niente da ripassare oggi"}</button>
+            <div className="seg" style={{ margin: 0 }} role="group" aria-label="Direzione">
+              <button aria-pressed={dir === "de"} onClick={() => setDir("de")}>Tedesco verso italiano</button>
+              <button aria-pressed={dir === "it"} onClick={() => setDir("it")}>Italiano verso tedesco</button>
+            </div>
+          </div>
+        </>
+      )}
+      <h2 className="sec">Aggiungi una parola</h2>
+      <div className="grid2">
+        <label className="f"><span>Tedesco</span><input value={form.de} placeholder="die Rechnung" onChange={(e) => setForm({ ...form, de: e.target.value })} autoCapitalize="off" /></label>
+        <label className="f"><span>Italiano</span><input value={form.it} placeholder="la fattura" onChange={(e) => setForm({ ...form, it: e.target.value })} /></label>
+      </div>
+      <label className="f"><span>Frase d'esempio (facoltativa)</span><input value={form.esempio} onChange={(e) => setForm({ ...form, esempio: e.target.value })} /></label>
+      <button className="btn ghost" disabled={!form.de.trim() || !form.it.trim()} onClick={aggiungi}>Aggiungi</button>
+      {all.length > 0 && (
+        <details style={{ marginTop: 26 }}>
+          <summary>Tutte le parole ({all.length})</summary>
+          <ul className="wlist">
+            {all.map((v) => (
+              <li key={v.id}><b>{v.de}</b><span className="muted">{v.it}</span>
+                <button className="btn small ghost" aria-label={`Elimina ${v.de}`} onClick={() => { if (confirm(`Eliminare «${v.de}»?`)) apply({ ["vocab/" + v.id]: null }); }}>Elimina</button></li>
+            ))}
+          </ul>
+        </details>
+      )}
+    </>
+  );
+}
+
+function Contenuti({ data, param, apply, notify }) {
+  const aree = areaList(data);
+  const [pa, pl] = String(param || "").split("/").map((x) => decodeURIComponent(x || ""));
+  const [areaId, setAreaId] = useState(pa && (data.areas[pa] || pa === "nuova") ? pa : (aree[0] ? aree[0].id : "nuova"));
+  const area = data.areas[areaId];
+  const [livello, setLivello] = useState(pl || (area ? livelliOf(area)[0] : ""));
+  const [argomento, setArgomento] = useState("");
+  const [n, setN] = useState(1);
+  const [deboli, setDeboli] = useState(true);
+  const [nome, setNome] = useState("");
+  const [obiettivo, setObiettivo] = useState("");
+  const [txt, setTxt] = useState("");
+  const [esito, setEsito] = useState(null);
+  useEffect(() => { if (area && !livelliOf(area).includes(livello)) setLivello(livelliOf(area)[0]); }, [areaId]);
+
+  const prompt = areaId === "nuova"
+    ? (nome.trim() ? promptArea(data, nome.trim(), obiettivo) : "")
+    : area ? promptLezioni(data, area, livello || livelliOf(area)[0], argomento, n, deboli) : "";
+
+  const copia = async () => { const ok = await copyText(prompt); notify(ok ? "Richiesta copiata. Incollala in una chat con Claude." : "Copia non riuscita: seleziona il testo qui sotto e copialo a mano."); };
+  const importa = () => {
+    try {
+      const r = parseImport(txt, data);
+      if (Object.keys(r.upd).length) apply(r.upd);
+      setEsito(r);
+      if (r.nLez || r.nAree || r.nVoc) setTxt("");
+    } catch (e) { setEsito({ errors: [e.message], nLez: 0, nAree: 0, nVoc: 0, dove: [] }); }
+  };
+
+  return (
+    <>
+      <h1 className="page">Nuovi contenuti</h1>
+      <p className="lede">Le lezioni nuove le scrive Claude. Qui prepari la richiesta, la incolli in una chat e poi importi la risposta.</p>
+      <div className="steps">
+        <div className="step">
+          <h3>Prepara la richiesta</h3>
+          <label className="f"><span>Area</span>
+            <select value={areaId} onChange={(e) => setAreaId(e.target.value)}>
+              {aree.map((a) => <option key={a.id} value={a.id}>{a.nome}</option>)}
+              <option value="nuova">Nuova area…</option>
+            </select>
+          </label>
+          {areaId === "nuova" ? (
+            <>
+              <label className="f"><span>Nome dell'area</span><input value={nome} placeholder="Per esempio: Diritto commerciale" onChange={(e) => setNome(e.target.value)} /></label>
+              <label className="f"><span>Obiettivo (facoltativo)</span><input value={obiettivo} placeholder="Cosa vuoi saper fare alla fine" onChange={(e) => setObiettivo(e.target.value)} /></label>
+            </>
+          ) : area && (
+            <>
+              <div className="grid2">
+                <label className="f"><span>Livello</span>
+                  <select value={livello} onChange={(e) => setLivello(e.target.value)}>{livelliOf(area).map((lv) => <option key={lv}>{lv}</option>)}</select>
+                </label>
+                <label className="f"><span>Quante lezioni</span>
+                  <select value={n} onChange={(e) => setN(Number(e.target.value))}>{[1, 2, 3].map((k) => <option key={k} value={k}>{k}</option>)}</select>
+                </label>
+              </div>
+              <label className="f"><span>Argomento (facoltativo)</span><input value={argomento} placeholder="Lascia vuoto e sceglie Claude" onChange={(e) => setArgomento(e.target.value)} /></label>
+              <label className="check"><input type="checkbox" checked={deboli} onChange={(e) => setDeboli(e.target.checked)} />Includi i miei punti deboli in quest'area</label>
+            </>
+          )}
+          <div className="row" style={{ marginTop: 6 }}>
+            <button className="btn" disabled={!prompt} onClick={copia}>Copia la richiesta</button>
+          </div>
+          {prompt && <details><summary>Vedi il testo della richiesta</summary><textarea readOnly rows={10} value={prompt} style={{ fontSize: 13 }} /></details>}
+        </div>
+        <div className="step">
+          <h3>Incollala in una chat con Claude</h3>
+          <p className="muted small" style={{ margin: "0 0 10px" }}>Claude risponde con un blocco di testo che comincia con una parentesi graffa. Copialo tutto.</p>
+          <a className="btn ghost small" href="https://claude.ai/new" target="_blank" rel="noopener">Apri Claude</a>
+        </div>
+        <div className="step">
+          <h3>Importa la risposta</h3>
+          <textarea rows={7} value={txt} placeholder='{"lezioni": [ ... ]}' onChange={(e) => setTxt(e.target.value)} style={{ fontFamily: "var(--mono)", fontSize: 13 }} />
+          <div className="row" style={{ marginTop: 10 }}><button className="btn" disabled={!txt.trim()} onClick={importa}>Importa</button></div>
+          {esito && (
+            <div style={{ marginTop: 12 }}>
+              {(esito.nLez > 0 || esito.nAree > 0 || esito.nVoc > 0) && (
+                <p className="okmsg">
+                  {[esito.nAree ? `${esito.nAree === 1 ? "Creata 1 area" : `Create ${esito.nAree} aree`}` : "", esito.nLez ? `${esito.nLez === 1 ? "aggiunta 1 lezione" : `aggiunte ${esito.nLez} lezioni`}` : "", esito.nVoc ? `${esito.nVoc} parole nel ripasso` : ""].filter(Boolean).join(", ").replace(/^./, (c) => c.toUpperCase())}.
+                </p>
+              )}
+              {esito.dove.map((w) => <a key={w.area + w.liv} className="btn small ghost" style={{ marginRight: 8 }} href={"#/area/" + w.area}>Vai a {w.nome}, {w.liv}</a>)}
+              {esito.errors.map((e, k) => <p key={k} className="err">{e}</p>)}
+            </div>
+          )}
+        </div>
+      </div>
+    </>
+  );
+}
+
+function Opzioni({ data, apply, notify, mode, user, auth }) {
+  const o = opts(data);
+  const [cfgTxt, setCfgTxt] = useState("");
+  const [cfgErr, setCfgErr] = useState("");
+  const [restore, setRestore] = useState("");
+  const [profilo, setProfilo] = useState(o.profilo);
+  const localData = mode === "cloud" ? lsGet("gradus_data") : null;
+
+  const salvaConfig = () => {
+    try { const c = parseConfigText(cfgTxt); lsSet("gradus_fbconfig", c); location.reload(); }
+    catch (e) { setCfgErr(e.message); }
+  };
+  const scarica = () => {
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob); const a = document.createElement("a");
+    a.href = url; a.download = `gradus-backup-${today()}.json`; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1500);
+  };
+  const ripristina = () => {
+    let j; try { j = JSON.parse(restore); } catch (e) { notify("Il backup non è JSON valido."); return; }
+    if (!j || !j.areas || !j.lessons) { notify("Questo non sembra un backup di Gradus."); return; }
+    if (!confirm("Sostituire tutti i dati attuali con il backup?")) return;
+    const upd = {}; KEYS.forEach((k) => { upd[k] = j[k] && Object.keys(j[k]).length ? j[k] : null; });
+    if (!upd.meta) upd.meta = { seedVersion: SEED_VERSION };
+    apply(upd); setRestore(""); notify("Backup ripristinato.");
+  };
+  const unisciLocali = () => {
+    const d = normalize(localData); const upd = {};
+    ["areas", "lessons", "progress", "vocab", "attivita", "sblocchi"].forEach((k) => Object.keys(d[k]).forEach((id) => { if (!data[k][id]) upd[k + "/" + id] = d[k][id]; }));
+    if (!Object.keys(upd).length) { notify("Non c'è niente di nuovo da trasferire."); return; }
+    apply(upd); notify("Dati del dispositivo trasferiti nel cloud.");
+  };
+  const eliminaArea = (a) => {
+    if (!confirm(`Eliminare l'area «${a.nome}», tutte le sue lezioni e i risultati?`)) return;
+    const upd = { ["areas/" + a.id]: null, ["sblocchi/" + a.id]: null };
+    lessonsOf(data, a.id).forEach((l) => { upd["lessons/" + l.id] = null; upd["progress/" + l.id] = null; });
+    apply(upd);
+  };
+  const regole = '{\n  "rules": {\n    "gradus": {\n      ".read": "auth != null",\n      ".write": "auth != null"\n    }\n  }\n}';
+
+  return (
+    <>
+      <h1 className="page">Opzioni</h1>
+
+      <h2 className="sec">Sincronizzazione</h2>
+      {mode === "cloud" ? (
+        <div className="panel">
+          <p style={{ marginTop: 0 }}>I dati sono salvati su Firebase e sincronizzati tra i dispositivi{user && user.email ? `, con l'account ${user.email}` : ""}.</p>
+          <div className="row">
+            <button className="btn ghost small" onClick={() => auth && auth.signOut()}>Esci</button>
+            {!FIREBASE_CONFIG && <button className="btn ghost small" onClick={() => { if (confirm("Rimuovere la configurazione Firebase da questo dispositivo?")) { lsSet("gradus_fbconfig", null); location.reload(); } }}>Rimuovi la configurazione</button>}
+            {localData && <button className="btn ghost small" onClick={unisciLocali}>Trasferisci i dati di questo dispositivo</button>}
+          </div>
+        </div>
+      ) : (
+        <div className="panel">
+          <p style={{ marginTop: 0 }}>Per ora i dati restano solo su questo dispositivo. Per sincronizzarli collega un progetto Firebase gratuito:</p>
+          <ol className="small" style={{ paddingLeft: 20, color: "var(--ink-2)" }}>
+            <li>Su console.firebase.google.com crea un progetto.</li>
+            <li>In Authentication attiva il metodo Email/password.</li>
+            <li>Crea un Realtime Database (europe-west1) e incolla queste regole:</li>
+          </ol>
+          <pre className="code">{regole}</pre>
+          <ol className="small" start={4} style={{ paddingLeft: 20, color: "var(--ink-2)" }}>
+            <li>Nelle impostazioni del progetto aggiungi un'app web e copia l'oggetto firebaseConfig.</li>
+            <li>Incollalo qui sotto, poi crea l'account dalla schermata di accesso.</li>
+          </ol>
+          <textarea rows={6} value={cfgTxt} placeholder="const firebaseConfig = { apiKey: ... }" onChange={(e) => { setCfgTxt(e.target.value); setCfgErr(""); }} style={{ fontFamily: "var(--mono)", fontSize: 13 }} />
+          {cfgErr && <p className="err">{cfgErr}</p>}
+          <div className="row" style={{ marginTop: 10 }}><button className="btn" disabled={!cfgTxt.trim()} onClick={salvaConfig}>Collega e ricarica</button></div>
+          <p className="muted small">Prima di collegare scarica un backup: dopo l'accesso potrai trasferire nel cloud i progressi fatti su questo dispositivo.</p>
+        </div>
+      )}
+
+      <h2 className="sec">Livelli</h2>
+      <label className="check"><input type="checkbox" checked={o.blocco} onChange={(e) => apply({ "settings/bloccoLivelli": e.target.checked })} />Sblocca i livelli solo dopo aver superato il precedente</label>
+      <label className="f" style={{ maxWidth: 240 }}><span>Soglia per superare una lezione</span>
+        <select value={o.soglia} onChange={(e) => apply({ "settings/soglia": Number(e.target.value) })}>
+          {[60, 65, 70, 75, 80, 85, 90].map((s) => <option key={s} value={s}>{s}%</option>)}
+        </select>
+      </label>
+
+      <h2 className="sec">Profilo per le richieste a Claude</h2>
+      <p className="muted small" style={{ marginTop: 0 }}>Viene inserito in ogni richiesta per tarare il livello dei contenuti.</p>
+      <textarea rows={3} value={profilo} onChange={(e) => setProfilo(e.target.value)} onBlur={() => { if (profilo !== o.profilo) { apply({ "settings/profilo": profilo }); notify("Profilo salvato."); } }} />
+
+      <h2 className="sec">Aree</h2>
+      {areaList(data).map((a) => (
+        <div key={a.id} className="lrow" style={{ "--c": a.colore }}>
+          <span className="swatch" /><div style={{ flex: 1 }}><div>{a.nome}</div><div className="lrow-m"><span>{lessonsOf(data, a.id).length} lezioni</span><span>{livelliOf(a).join(", ")}</span></div></div>
+          <button className="btn small danger" onClick={() => eliminaArea(a)}>Elimina</button>
+        </div>
+      ))}
+
+      <h2 className="sec">Backup</h2>
+      <div className="row"><button className="btn ghost" onClick={scarica}>Scarica il backup</button></div>
+      <details style={{ marginTop: 12 }}>
+        <summary>Ripristina da backup</summary>
+        <textarea rows={5} value={restore} placeholder="Incolla qui il contenuto del file di backup" onChange={(e) => setRestore(e.target.value)} style={{ fontFamily: "var(--mono)", fontSize: 13 }} />
+        <div className="row" style={{ marginTop: 10 }}><button className="btn" disabled={!restore.trim()} onClick={ripristina}>Ripristina</button></div>
+      </details>
+
+      <h2 className="sec">Azzera</h2>
+      <button className="btn danger" onClick={() => { if (confirm("Azzerare tutti i risultati, gli sblocchi e la serie di studio? Le lezioni restano.")) apply({ progress: null, sblocchi: null, attivita: null }); }}>Azzera i progressi</button>
+      <p className="muted small" style={{ marginTop: 30 }}>Gradus, versione contenuti {SEED_VERSION}.</p>
+    </>
+  );
+}
+
+function Login({ auth }) {
+  const [email, setEmail] = useState(""); const [pw, setPw] = useState("");
+  const [err, setErr] = useState(""); const [busy, setBusy] = useState(false);
+  const run = async (crea) => {
+    setErr(""); setBusy(true);
+    try { if (crea) await auth.createUserWithEmailAndPassword(email.trim(), pw); else await auth.signInWithEmailAndPassword(email.trim(), pw); }
+    catch (e) { setErr(authMsg(e)); }
+    setBusy(false);
+  };
+  return (
+    <div className="center">
+      <div className="login">
+        <div className="brand" style={{ fontSize: 40, marginBottom: 6 }}><Logo />Gradus</div>
+        <p className="lede">Accedi per sincronizzare lezioni e progressi.</p>
+        <label className="f"><span>Email</span><input type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} /></label>
+        <label className="f"><span>Password</span><input type="password" autoComplete="current-password" value={pw} onChange={(e) => setPw(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") run(false); }} /></label>
+        {err && <p className="err">{err}</p>}
+        <div className="row" style={{ marginTop: 12 }}>
+          <button className="btn" disabled={busy || !email || !pw} onClick={() => run(false)}>Accedi</button>
+          <button className="btn ghost" disabled={busy || !email || !pw} onClick={() => run(true)}>Crea l'account</button>
+        </div>
+        {!FIREBASE_CONFIG && <p style={{ marginTop: 26 }}><button className="linkbtn" onClick={() => { if (confirm("Rimuovere la configurazione Firebase e usare Gradus solo su questo dispositivo?")) { lsSet("gradus_fbconfig", null); location.reload(); } }}>Usa Gradus senza sincronizzazione</button></p>}
+      </div>
+    </div>
+  );
+}
+
+function useRoute() {
+  const parse = () => { const h = location.hash.replace(/^#\/?/, ""); const [name, ...rest] = h.split("/"); return { name: name || "oggi", param: rest.join("/") }; };
+  const [r, setR] = useState(parse);
+  useEffect(() => { const f = () => { setR(parse()); window.scrollTo(0, 0); }; window.addEventListener("hashchange", f); return () => window.removeEventListener("hashchange", f); }, []);
+  return r;
+}
+
+/* ================= App ================= */
+function App() {
+  const config = useMemo(readConfig, []);
+  const mode = config ? "cloud" : "local";
+  const fb = useRef(null);
+  const [user, setUser] = useState(undefined);
+  const [data, setData] = useState(null);
+  const [fail, setFail] = useState("");
+  const [toast, setToast] = useState(null);
+  const route = useRoute();
+  const tRef = useRef(null);
+
+  const notify = useCallback((m) => { setToast(m); clearTimeout(tRef.current); tRef.current = setTimeout(() => setToast(null), 2800); }, []);
+
+  useEffect(() => {
+    if (mode === "local") {
+      const d = normalize(lsGet("gradus_data")); const u = seedUpdates(d);
+      setData(u ? applyUpdates(d, u) : d); setUser(null); return;
+    }
+    const f = initFirebase(config);
+    if (!f) { setFail("Non riesco ad avviare Firebase. Controlla la connessione o la configurazione."); return; }
+    fb.current = f;
+    return f.auth.onAuthStateChanged((u) => setUser(u || null));
+  }, []);
+
+  useEffect(() => {
+    if (mode !== "cloud" || !user) return;
+    const ref = fb.current.db.ref(ROOT);
+    const h = ref.on("value", (snap) => {
+      const d = normalize(snap.val()); const u = seedUpdates(d);
+      if (u) ref.update(clean(u)).catch((e) => notify("Salvataggio non riuscito: " + e.message));
+      setData(d);
+    }, (e) => setFail("Lettura dei dati non riuscita: " + e.message + ". Controlla le regole del Realtime Database."));
+    return () => ref.off("value", h);
+  }, [user]);
+
+  useEffect(() => { if (mode === "local" && data) lsSet("gradus_data", data); }, [data]);
+
+  const apply = useCallback((upd) => {
+    setData((prev) => applyUpdates(prev || normalize(null), upd));
+    if (mode === "cloud" && fb.current) fb.current.db.ref(ROOT).update(clean(upd)).catch((e) => notify("Salvataggio non riuscito: " + e.message));
+  }, [mode]);
+
+  // Sblocco automatico dei livelli superati (resta sbloccato anche se aggiungi lezioni dopo)
+  useEffect(() => {
+    if (!data) return;
+    const upd = {};
+    areaList(data).forEach((a) => {
+      const cur = data.sblocchi[a.id] || 0; let max = cur;
+      for (let i = cur + 1; i < livelliOf(a).length; i++) { if (levelPassed(data, a, i - 1)) max = i; else break; }
+      if (max > cur) upd["sblocchi/" + a.id] = max;
+    });
+    if (Object.keys(upd).length) apply(upd);
+  }, [data]);
+
+  if (fail) return <div className="center"><div className="brand" style={{ fontSize: 36 }}><Logo />Gradus</div><p className="lede" style={{ marginTop: 12 }}>{fail}</p><button className="btn ghost" onClick={() => location.reload()}>Riprova</button></div>;
+  if (mode === "cloud" && user === undefined) return <div className="center"><div className="brand" style={{ fontSize: 36 }}><Logo />Gradus</div><p className="muted">Caricamento…</p></div>;
+  if (mode === "cloud" && !user) return <Login auth={fb.current.auth} />;
+  if (!data) return <div className="center"><div className="brand" style={{ fontSize: 36 }}><Logo />Gradus</div><p className="muted">Caricamento…</p></div>;
+
+  const tab = ["area", "lezione"].includes(route.name) ? "aree" : route.name;
+  let page;
+  switch (route.name) {
+    case "aree": page = <Aree data={data} />; break;
+    case "area": page = <Area key={route.param} data={data} id={decodeURIComponent(route.param)} apply={apply} />; break;
+    case "lezione": page = <Lezione key={route.param} data={data} id={decodeURIComponent(route.param)} apply={apply} notify={notify} />; break;
+    case "ripasso": page = <Ripasso data={data} apply={apply} notify={notify} />; break;
+    case "contenuti": page = <Contenuti key={route.param} data={data} param={route.param} apply={apply} notify={notify} />; break;
+    case "opzioni": page = <Opzioni data={data} apply={apply} notify={notify} mode={mode} user={user} auth={fb.current && fb.current.auth} />; break;
+    default: page = <Oggi data={data} />;
+  }
+  const nav = [["oggi", "Oggi"], ["aree", "Aree"], ["ripasso", "Ripasso"], ["contenuti", "Contenuti"], ["opzioni", "Opzioni"]];
+  return (
+    <>
+      <header className="top">
+        <div className="wrap">
+          <a className="brand" href="#/oggi"><Logo />Gradus</a>
+          <a className={"sync" + (mode === "cloud" ? " on" : "")} href="#/opzioni"><i />{mode === "cloud" ? "Sincronizzato" : "Solo su questo dispositivo"}</a>
+        </div>
+      </header>
+      <main><div className="wrap">{page}</div></main>
+      <nav className="bottom" aria-label="Sezioni">
+        <div className="wrap">
+          {nav.map(([k, t]) => <a key={k} href={"#/" + k} aria-current={tab === k ? "page" : undefined}><Icon n={k} />{t}</a>)}
+        </div>
+      </nav>
+      {toast && <div className="toast" role="status">{toast}</div>}
+    </>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>
