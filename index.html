@@ -109,6 +109,7 @@ label.f > span{display:block; font-size:14px; font-weight:600; color:var(--ink-2
 .badge.ok{color:var(--ok); border-color:color-mix(in srgb, var(--ok) 40%, var(--line))}
 .badge.low{color:var(--warn); border-color:color-mix(in srgb, var(--warn) 40%, var(--line))}
 .note{font-size:14.5px; color:var(--ink-2); background:var(--surface); border:1px dashed var(--line); border-radius:10px; padding:12px 14px; margin:12px 0}
+h3.mod{font-family:var(--sans); font-size:14px; font-weight:700; color:var(--ink-2); margin:24px 0 0; padding-left:10px; border-left:3px solid var(--c, var(--line))}
 
 /* Lezione */
 .lesson-meta{display:flex; gap:14px; flex-wrap:wrap; font-size:14px; color:var(--muted); margin-bottom:6px}
@@ -211,7 +212,7 @@ const FIREBASE_CONFIG = {
   appId: "1:704489945008:web:1951eed95cc4fd3308c875",
 };
 const ROOT = "gradus";
-const SEED_VERSION = 1;
+const SEED_VERSION = 2;
 const PROFILO_DEFAULT = "Controller junior con laurea magistrale in economia aziendale. Tedesco livello B1, obiettivo B2.";
 const INTERVALLI = [0, 1, 3, 7, 14, 30]; // giorni per scatola 1..5 del ripasso
 
@@ -293,7 +294,21 @@ function renderMd(md) {
 const SEED_AREAS = {
   finanza: { id: "finanza", nome: "Finanza", descrizione: "Valore del denaro, valutazione degli investimenti e delle aziende, rischio.", colore: "#1F7A6B", livelli: ["Base", "Intermedio", "Avanzato"], ordine: 1 },
   marketing: { id: "marketing", nome: "Marketing", descrizione: "Clienti e mercati, metriche di acquisizione, prezzo.", colore: "#A23B72", livelli: ["Base", "Intermedio", "Avanzato"], ordine: 2 },
-  controllo: { id: "controllo", nome: "Economia e controllo", descrizione: "Costi, budget, scostamenti e analisi dei margini.", colore: "#B07A1F", livelli: ["Base", "Intermedio", "Avanzato"], ordine: 3 },
+  controllo: {
+    id: "controllo", nome: "Controllo di gestione", descrizione: "Costi, budget e forecast, scostamenti, marginalità, KPI e cassa: il mestiere del controller.",
+    colore: "#B07A1F", livelli: ["Base", "Intermedio", "Avanzato", "Specialistico"], ordine: 3,
+    moduli: [
+      { id: "costi", nome: "Costi e contabilità analitica" },
+      { id: "decisioni", nome: "Decisioni di breve periodo" },
+      { id: "budget", nome: "Budget e forecast" },
+      { id: "scostamenti", nome: "Analisi degli scostamenti" },
+      { id: "marginalita", nome: "Marginalità" },
+      { id: "reporting", nome: "Reporting e KPI" },
+      { id: "circolante", nome: "Capitale circolante e cassa" },
+      { id: "investimenti", nome: "Investimenti" },
+      { id: "excel", nome: "Excel per il controller" },
+    ],
+  },
   tedesco: { id: "tedesco", nome: "Tedesco", descrizione: "Da B1 a B2: grammatica, lessico economico e scrittura formale.", colore: "#3A5BA0", livelli: ["B1", "B1+", "B2"], ordine: 4 },
 };
 
@@ -476,7 +491,7 @@ const SEED_LESSONS = [
 
   /* ---------- ECONOMIA E CONTROLLO ---------- */
   {
-    id: "ctr-base-break-even", area: "controllo", livello: "Base", titolo: "Costi, margine di contribuzione e break-even", argomento: "Analisi costi-volumi-risultati", minuti: 15,
+    id: "ctr-base-break-even", area: "controllo", modulo: "decisioni", livello: "Base", titolo: "Costi, margine di contribuzione e break-even", argomento: "Analisi costi-volumi-risultati", minuti: 15,
     teoria: T(
       "## Costi fissi e variabili",
       "- **Variabili**: crescono con i volumi (materie prime, provvigioni, energia di processo).",
@@ -504,7 +519,7 @@ const SEED_LESSONS = [
     ],
   },
   {
-    id: "ctr-int-scostamenti", area: "controllo", livello: "Intermedio", titolo: "Budget flessibile e analisi degli scostamenti", argomento: "Scostamenti su ricavi e materiali", minuti: 20,
+    id: "ctr-int-scostamenti", area: "controllo", modulo: "scostamenti", livello: "Intermedio", titolo: "Budget flessibile e analisi degli scostamenti", argomento: "Scostamenti su ricavi e materiali", minuti: 20,
     teoria: T(
       "## Budget statico e budget flessibile",
       "Il budget statico è costruito sui volumi previsti. Il budget flessibile ricalcola i costi standard sui volumi effettivi: separa l'effetto dei volumi da quello di prezzo ed efficienza.",
@@ -531,7 +546,7 @@ const SEED_LESSONS = [
     ],
   },
   {
-    id: "ctr-avz-mix", area: "controllo", livello: "Avanzato", titolo: "Scostamenti di quantità e di mix", argomento: "Analisi multi-prodotto del margine", minuti: 25,
+    id: "ctr-avz-mix", area: "controllo", modulo: "scostamenti", livello: "Avanzato", titolo: "Scostamenti di quantità e di mix", argomento: "Analisi multi-prodotto del margine", minuti: 25,
     teoria: T(
       "## Perché serve lo scostamento di mix",
       "Quando si vendono più prodotti con margini diversi, lo scostamento di volume «semplice» nasconde un effetto: la composizione delle vendite. Vendere più unità dei prodotti meno redditizi può far calare il margine medio.",
@@ -557,6 +572,236 @@ const SEED_LESSONS = [
       { tipo: "vf", domanda: "Se tutti i prodotti avessero lo stesso margine unitario, lo scostamento di mix sarebbe nullo.", risposta: true, spiegazione: "Il margine medio non dipenderebbe dalla composizione delle vendite." },
       { tipo: "multipla", domanda: "Fatturato +8% sul budget, margine di contribuzione −2%. La prima ipotesi da verificare è:", opzioni: ["Un errore nel budget dei costi fissi", "Un mix sfavorevole o un effetto prezzo negativo", "Un aumento degli ammortamenti", "Un effetto cambio sui debiti"], risposta: 1, spiegazione: "Il margine di contribuzione non dipende dai fissi: se i ricavi salgono e il margine scende, il sospetto va su mix, prezzi o costi variabili." },
       { tipo: "aperta", domanda: "Scrivi il commento per la direzione: volumi +20%, ma mix sfavorevole per −1.800 €. Cosa scrivi e quali azioni proponi?", criteri: "Numeri chiari (quantità +2.800, mix −1.800, netto +1.000); causa (spostamento verso A, a margine più basso); domande su prezzi e incentivi commerciali; azioni (obiettivi di margine oltre che di volume, spinta su B, revisione dei prezzi di A).", spiegazione: "I volumi crescono ma sul prodotto meno redditizio: il margine cresce solo di 1.000 € invece di 2.800 €. Va capito perché B cala e se gli incentivi di vendita premiano i volumi invece del margine." },
+    ],
+  },
+
+  {
+    id: "ctr-costi-classificazioni", v: 2, area: "controllo", modulo: "costi", livello: "Base", titolo: "Classificazione dei costi e centri di costo", argomento: "Dai costi per natura al costo di prodotto", minuti: 20,
+    teoria: T(
+      "## Perché classificare i costi",
+      "Lo stesso costo si classifica in modi diversi a seconda della domanda a cui vuoi rispondere. Non esiste una classificazione giusta in assoluto: esiste quella utile per la decisione.",
+      "## Rispetto ai volumi",
+      "- **Variabili**: crescono con i volumi prodotti o venduti.",
+      "- **Semivariabili**: una quota fissa più una quota variabile, come l'energia con canone fisso o la manutenzione.",
+      "- **Fissi a gradini**: costanti fino a una soglia di capacità, poi salgono di colpo, come un secondo turno o un nuovo impianto.",
+      "## Rispetto all'oggetto di costo",
+      "- **Diretti**: attribuibili in modo oggettivo e conveniente a un oggetto (prodotto, commessa, cliente). Esempio: la materia prima di un articolo.",
+      "- **Indiretti**: comuni a più oggetti, vanno ripartiti con una base di riparto. Esempio: l'affitto dello stabilimento.",
+      "Diretto e variabile sono dimensioni diverse: lo stipendio del capo reparto di una linea dedicata a un solo prodotto è diretto rispetto a quel prodotto, ma fisso.",
+      "## Centri di costo",
+      "Un centro di costo è un'unità organizzativa a cui si imputano costi e di cui si misura l'efficienza.",
+      "- **Produttivi**: lavorano direttamente il prodotto (pressatura, smaltatura, cottura).",
+      "- **Ausiliari**: servono i produttivi (manutenzione, magazzino, controllo qualità).",
+      "- **Comuni**: servono tutta l'azienda (amministrazione, IT, direzione).",
+      "## Dal centro al prodotto",
+      "1. Si imputano ai centri i loro costi diretti e si ripartiscono i costi comuni.",
+      "2. Si ribaltano i centri ausiliari sui produttivi in base ai servizi resi, per esempio le ore di manutenzione.",
+      "3. Si calcola un coefficiente per ogni centro produttivo: `costo del centro / base di attività`, per esempio € per ora macchina.",
+      "4. Ogni prodotto assorbe costi in base all'attività che consuma.",
+      "> La base di riparto non è neutra: se non riflette la vera causa del costo, sposta margine da un prodotto all'altro."
+    ),
+    esercizi: [
+      { tipo: "multipla", domanda: "Lo stipendio del responsabile di una linea dedicata a un solo prodotto è, rispetto a quel prodotto:", opzioni: ["Diretto e variabile", "Diretto e fisso", "Indiretto e variabile", "Indiretto e fisso"], risposta: 1, spiegazione: "È attribuibile a quel prodotto (diretto) ma non cambia con i volumi (fisso)." },
+      { tipo: "numerico", domanda: "Il centro Cottura ha costi per 480.000 € e lavora 12.000 ore forno. Qual è il coefficiente orario?", risposta: 40, tolleranza: 0.01, unita: "€/ora", spiegazione: "480.000 / 12.000 = 40 € per ora forno." },
+      { tipo: "numerico", domanda: "Un lotto richiede 0,5 ore forno e contiene 200 m². Quanto costo di cottura assorbe ogni m²?", risposta: 0.1, tolleranza: 0.001, unita: "€/m²", spiegazione: "0,5 × 40 = 20 € per lotto; 20 / 200 = 0,10 € al m²." },
+      { tipo: "numerico", domanda: "La Manutenzione costa 90.000 € e presta 1.500 ore: 900 alla Pressatura e 600 alla Cottura. Quanto costo si ribalta sulla Cottura?", risposta: 36000, tolleranza: 0.5, unita: "€", spiegazione: "90.000 × 600 / 1.500 = 36.000 €." },
+      { tipo: "multipla", domanda: "Il magazzino materie prime è un centro:", opzioni: ["Produttivo", "Ausiliario", "Comune", "Di ricavo"], risposta: 1, spiegazione: "Serve i reparti produttivi senza lavorare direttamente il prodotto." },
+      { tipo: "vf", domanda: "Un costo fisso è sempre anche un costo indiretto.", risposta: false, spiegazione: "Sono classificazioni indipendenti: un costo fisso può essere diretto, come l'ammortamento di un impianto dedicato a un solo prodotto." },
+      { tipo: "completa", domanda: "Un costo con una quota fissa e una quota che varia con i volumi si dice ___.", risposta: ["semivariabile", "semi-variabile", "misto"], spiegazione: "È un costo semivariabile, o misto." },
+    ],
+  },
+  {
+    id: "ctr-circolante-ccc", v: 2, area: "controllo", modulo: "circolante", livello: "Base", titolo: "Capitale circolante e ciclo di conversione di cassa", argomento: "DSO, DIO, DPO", minuti: 20,
+    teoria: T(
+      "## Cos'è",
+      "`CCN operativo = crediti commerciali + rimanenze − debiti commerciali`",
+      "È la cassa immobilizzata nel ciclo operativo. Se cresce, assorbe liquidità anche quando il conto economico è in utile.",
+      "## I tre indicatori di durata",
+      "- `DSO = crediti commerciali / fatturato × 365`: giorni medi di incasso.",
+      "- `DIO = rimanenze / costo del venduto × 365`: giorni medi di giacenza.",
+      "- `DPO = debiti commerciali / acquisti × 365`: giorni medi di pagamento. Spesso si usa il costo del venduto come approssimazione degli acquisti.",
+      "Usa grandezze omogenee: se i crediti includono l'IVA e il fatturato no, il DSO risulta gonfiato.",
+      "## Ciclo di conversione di cassa",
+      "`CCC = DSO + DIO − DPO`",
+      "Sono i giorni che passano tra il pagamento dei fornitori e l'incasso dai clienti. Più è lungo, più cassa serve per sostenere le vendite.",
+      "In prima approssimazione, ogni euro di fatturato aggiuntivo richiede `CCC / 365` euro di circolante: con un CCC di 120 giorni, circa un terzo.",
+      "## Le leve",
+      "- **Crediti**: termini di pagamento, solleciti sistematici, gestione dello scaduto, cessione pro soluto.",
+      "- **Scorte**: dimensione dei lotti, livello di servizio per articolo, eliminazione dei codici a bassa rotazione.",
+      "- **Debiti**: termini con i fornitori, senza compromettere relazioni e prezzi.",
+      "> Nel rendiconto finanziario la variazione del circolante è spesso la voce che spiega la distanza tra EBITDA e flusso di cassa operativo."
+    ),
+    esercizi: [
+      { tipo: "numerico", domanda: "Fatturato annuo 36,5 milioni €, crediti commerciali 6 milioni € (grandezze omogenee). Quanto vale il DSO?", risposta: 60, tolleranza: 0.5, unita: "giorni", spiegazione: "6 / 36,5 × 365 = 60 giorni." },
+      { tipo: "numerico", domanda: "Rimanenze 4 milioni €, costo del venduto 18,25 milioni €. Quanto vale il DIO?", risposta: 80, tolleranza: 0.5, unita: "giorni", spiegazione: "4 / 18,25 × 365 = 80 giorni." },
+      { tipo: "numerico", domanda: "Debiti commerciali 3 milioni €, acquisti 18,25 milioni €. Quanto vale il DPO?", risposta: 60, tolleranza: 0.5, unita: "giorni", spiegazione: "3 / 18,25 × 365 = 60 giorni." },
+      { tipo: "numerico", domanda: "Con i tre valori precedenti, qual è il ciclo di conversione di cassa?", risposta: 80, tolleranza: 0.5, unita: "giorni", spiegazione: "60 + 80 − 60 = 80 giorni." },
+      { tipo: "multipla", domanda: "EBITDA 5 milioni €, capex 1 milione €, il CCN cresce di 2 milioni €. Flusso operativo dopo i capex, prima delle imposte?", opzioni: ["8 milioni €", "4 milioni €", "2 milioni €", "6 milioni €"], risposta: 2, spiegazione: "5 − 2 − 1 = 2 milioni €: l'aumento del circolante assorbe cassa." },
+      { tipo: "vf", domanda: "A parità del resto, un aumento del DPO libera cassa.", risposta: true, spiegazione: "Pagare più tardi i fornitori riduce il circolante netto." },
+      { tipo: "aperta", domanda: "Il DSO è salito da 60 a 75 giorni in un anno. Come analizzi la variazione prima di portarla in direzione?", criteri: "Verifica di omogeneità (IVA, stagionalità, fatturato di fine periodo); scomposizione per cliente, area e canale; scaduto e a scadere; cambi nei termini concessi; posizioni in contenzioso; stima dell'impatto di cassa (15 giorni × fatturato / 365).", spiegazione: "Prima si esclude un effetto di calcolo o di stagionalità, poi si individua dove si concentra l'aumento e se è scaduto o termini più lunghi. L'impatto di cassa è circa 15/365 del fatturato annuo." },
+    ],
+  },
+  {
+    id: "ctr-reporting-kpi", v: 2, area: "controllo", modulo: "reporting", livello: "Intermedio", titolo: "KPI e reporting per la direzione", argomento: "Indicatori, balanced scorecard, commento", minuti: 20,
+    teoria: T(
+      "## Cosa rende utile un KPI",
+      "- È legato a un obiettivo e a una decisione: se nessuno cambia comportamento quando si muove, è un numero, non un indicatore.",
+      "- Ha una definizione univoca: formula, fonte, perimetro e frequenza.",
+      "- Ha un responsabile che può influenzarlo.",
+      "- Si confronta con un riferimento: budget, anno precedente o obiettivo.",
+      "## Indicatori consuntivi e anticipatori",
+      "I KPI **consuntivi** misurano il risultato: fatturato, EBITDA, margine. Quelli **anticipatori** lo precedono: portafoglio ordini, offerte aperte, tasso di scarto, saturazione degli impianti. Un buon cruscotto li combina.",
+      "## Balanced scorecard",
+      "Kaplan e Norton propongono quattro prospettive collegate da relazioni di causa ed effetto: **economico-finanziaria**, **clienti**, **processi interni**, **apprendimento e crescita**.",
+      "## Attenzione alle percentuali",
+      "Su voci piccole le variazioni percentuali esplodono, e sui costi un segno positivo è sfavorevole. Mostra sempre anche il valore assoluto.",
+      "## Il commento mensile",
+      "1. **Cosa**: il numero e lo scostamento principale.",
+      "2. **Perché**: le due o tre cause, quantificate.",
+      "3. **Quindi**: impatto sul forecast e azioni proposte.",
+      "> Un report per la direzione dovrebbe stare in una pagina: il dettaglio va in allegato, non in prima pagina."
+    ),
+    esercizi: [
+      { tipo: "multipla", domanda: "Quale di questi è un indicatore anticipatorio del fatturato?", opzioni: ["EBITDA del mese", "Portafoglio ordini", "Margine di contribuzione", "DSO"], risposta: 1, spiegazione: "Il portafoglio ordini anticipa il fatturato dei mesi successivi." },
+      { tipo: "multipla", domanda: "Nella balanced scorecard, il tasso di scarto di produzione appartiene di solito alla prospettiva:", opzioni: ["Economico-finanziaria", "Clienti", "Processi interni", "Apprendimento e crescita"], risposta: 2, spiegazione: "Misura l'efficienza e la qualità dei processi produttivi." },
+      { tipo: "numerico", domanda: "Costi di trasporto a budget 200.000 €, effettivi 230.000 €. Scostamento percentuale rispetto al budget?", risposta: 15, tolleranza: 0.05, unita: "%", spiegazione: "(230.000 − 200.000) / 200.000 = +15%, sfavorevole perché è un costo." },
+      { tipo: "numerico", domanda: "La resa di prima scelta di un forno è il 92%. Su 50.000 m² prodotti, quanti m² di prima scelta ottieni?", risposta: 46000, tolleranza: 0.5, unita: "m²", spiegazione: "50.000 × 0,92 = 46.000 m²." },
+      { tipo: "vf", domanda: "Un KPI utile deve avere un responsabile in grado di influenzarlo.", risposta: true, spiegazione: "Senza un responsabile che può agire, l'indicatore non guida decisioni." },
+      { tipo: "completa", domanda: "Gli indicatori che misurano un risultato già avvenuto si dicono consuntivi o ___.", risposta: ["lagging", "di risultato"], spiegazione: "Sono gli indicatori lagging; quelli anticipatori sono leading." },
+      { tipo: "aperta", domanda: "Scrivi un commento di tre righe per la direzione: EBITDA del mese 1,2 milioni € contro 1,5 a budget; volumi −6%; energia +180.000 € rispetto al budget; prezzi medi in linea.", criteri: "Struttura cosa, perché, quindi; quantificazione (−300.000 € totali, di cui −180.000 € energia e circa −120.000 € volumi); impatto sul forecast; almeno un'azione concreta.", spiegazione: "EBITDA a 1,2 milioni €, −300.000 € sul budget. Pesano l'energia (−180.000 €) e il calo dei volumi (circa −120.000 €), con prezzi in linea. Se i prezzi dell'energia restano a questi livelli, il forecast va rivisto: si propongono azioni su volumi e consumi." },
+    ],
+  },
+  {
+    id: "ctr-excel-formule", v: 2, area: "controllo", modulo: "excel", livello: "Intermedio", titolo: "Excel per il controller: le formule che contano", argomento: "Ricerche, somme condizionate, date, buone pratiche", minuti: 20,
+    teoria: T(
+      "## Le funzioni di ogni giorno",
+      "- `CERCA.X(valore; matrice_ricerca; matrice_restituita; [se_non_trovato])`: sostituisce CERCA.VERT, cerca in qualunque direzione e gestisce il valore mancante.",
+      "- `SOMMA.PIÙ.SE(intervallo_somma; intervallo_criteri1; criterio1; ...)`: somma condizionata su più criteri. L'intervallo da sommare va per primo.",
+      "- `INDICE(matrice; CONFRONTA(valore; intervallo; 0))`: l'alternativa classica a CERCA.X.",
+      "- `SE.ERRORE(valore; valore_se_errore)`: pulisce gli errori a video, ma può nascondere problemi veri.",
+      "- `FILTRO`, `UNICI`, `DATI.ORDINA`: matrici dinamiche per liste e tabelle che si aggiornano da sole.",
+      "## Riferimenti",
+      "`$A$1` è assoluto, `A$1` blocca la riga, `$A1` blocca la colonna. Sono il cuore di una tabella di budget costruita con una sola formula trascinata.",
+      "## Date e periodi",
+      "- `FINE.MESE(data; 0)`: ultimo giorno del mese.",
+      "- `DATA.MESE(data; n)`: sposta la data di n mesi.",
+      "- `=ANNO(A2)*100+MESE(A2)` costruisce una chiave periodo come 202609, comoda per i confronti.",
+      "## Buone pratiche di modellazione",
+      "- input, calcoli e output su fogli separati;",
+      "- nessun numero scritto dentro le formule: le ipotesi stanno in celle di input;",
+      "- una sola formula per riga, coerente su tutte le colonne;",
+      "- controlli di quadratura visibili: totale da dettaglio uguale al totale da fonte.",
+      "> In un file condiviso la leggibilità conta più dell'eleganza: una formula che nessuno capisce è un rischio operativo."
+    ),
+    esercizi: [
+      { tipo: "completa", domanda: "Nell'Excel italiano, la funzione che sostituisce CERCA.VERT e cerca in qualunque direzione è ___.", risposta: ["CERCA.X"], spiegazione: "CERCA.X, la versione italiana di XLOOKUP." },
+      { tipo: "multipla", domanda: "Vuoi sommare il fatturato (colonna D) per Paese «Germania» (colonna B) e mese 9 (colonna C). Quale formula è corretta?", opzioni: ["=SOMMA.PIÙ.SE(D:D;B:B;\"Germania\";C:C;9)", "=SOMMA.SE(B:B;\"Germania\";D:D;C:C;9)", "=SOMMA.PIÙ.SE(B:B;\"Germania\";C:C;9;D:D)", "=SOMMA.PIÙ.SE(D:D;\"Germania\";B:B;9;C:C)"], risposta: 0, spiegazione: "In SOMMA.PIÙ.SE l'intervallo da sommare viene prima, poi le coppie intervallo e criterio." },
+      { tipo: "numerico", domanda: "Con =ANNO(A2)*100+MESE(A2) e in A2 la data 15/03/2026, che valore ottieni?", risposta: 202603, tolleranza: 0, spiegazione: "2026 × 100 + 3 = 202603." },
+      { tipo: "multipla", domanda: "Copi in basso e a destra la formula =B$2*$A3. Cosa resta fisso?", opzioni: ["Riga e colonna di entrambi i riferimenti", "La riga 2 nel primo riferimento e la colonna A nel secondo", "La colonna B nel primo e la riga 3 nel secondo", "Niente"], risposta: 1, spiegazione: "Il simbolo $ blocca ciò che lo segue: in B$2 la riga, in $A3 la colonna." },
+      { tipo: "completa", domanda: "Per ottenere l'ultimo giorno del mese della data in A1 scrivi =___(A1;0).", risposta: ["FINE.MESE"], spiegazione: "FINE.MESE con 0 restituisce l'ultimo giorno dello stesso mese." },
+      { tipo: "vf", domanda: "Racchiudere tutte le formule di un modello in SE.ERRORE è una buona pratica perché rende il file più pulito.", risposta: false, spiegazione: "Nasconde anche gli errori veri, come un codice mancante in anagrafica: va usato solo dove l'errore è atteso." },
+      { tipo: "aperta", domanda: "Descrivi come costruiresti un foglio per confrontare budget e consuntivo per centro di costo e mese, con un controllo di quadratura.", criteri: "Fogli di input separati (budget, estrazione consuntivo); chiave coerente centro più periodo; SOMMA.PIÙ.SE o CERCA.X per popolare la tabella; scostamenti assoluti e percentuali; controllo del totale contro la fonte; nessun valore scritto nelle formule; formule in italiano con punto e virgola.", spiegazione: "Input separati, una tabella di output con una sola formula trascinata, scostamenti e una riga di quadratura che confronta il totale con l'estrazione." },
+    ],
+  },
+  {
+    id: "ctr-investimenti-flussi", v: 2, area: "controllo", modulo: "investimenti", livello: "Intermedio", titolo: "Flussi incrementali di un investimento", argomento: "Costi sommersi, scudo fiscale, payback e VAN", minuti: 25,
+    teoria: T(
+      "## Solo i flussi incrementali",
+      "Si valuta la differenza tra i flussi di cassa con il progetto e senza.",
+      "- **Da includere**: investimento, ricavi e costi aggiuntivi, variazione del circolante, valore residuo, effetto delle imposte.",
+      "- **Da escludere**: i **costi sommersi**, già sostenuti in ogni caso (uno studio di fattibilità già pagato), e i costi comuni che il progetto non modifica (una quota di costi generali ribaltata).",
+      "- **Da includere anche** i **costi opportunità**: il valore dell'alternativa a cui rinunci, come l'affitto di un capannone di proprietà che userai per il progetto.",
+      "## Ammortamento e imposte",
+      "L'ammortamento non è un'uscita di cassa, ma riduce le imposte. Il flusso operativo annuo è:",
+      "`Flusso = (ricavi − costi cash − ammortamento) × (1 − t) + ammortamento`",
+      "che equivale a `(ricavi − costi cash) × (1 − t) + ammortamento × t`. Il secondo termine è lo **scudo fiscale** dell'ammortamento.",
+      "## Circolante",
+      "Un impianto che aumenta le vendite richiede più crediti e scorte: l'aumento del circolante è un'uscita all'inizio e rientra a fine progetto.",
+      "## Criteri",
+      "- **Payback**: anni per recuperare l'investimento. Semplice, ma ignora i flussi successivi e il valore del tempo.",
+      "- **VAN** al costo del capitale: il criterio di riferimento.",
+      "- **TIR**: utile per comunicare, con i limiti visti in Finanza.",
+      "> Nei capex di efficienza, come un forno che consuma meno gas, il flusso incrementale è il risparmio: va stimato con prudenza e contro lo scenario senza investimento, non contro il costo di oggi."
+    ),
+    esercizi: [
+      { tipo: "multipla", domanda: "Quale voce NON va inclusa nei flussi di un nuovo impianto?", opzioni: ["L'aumento delle scorte necessario", "La consulenza di fattibilità pagata l'anno scorso", "L'affitto a cui rinunci usando un capannone di proprietà", "Il valore di realizzo finale dell'impianto"], risposta: 1, spiegazione: "È un costo sommerso: è stato sostenuto qualunque sia la decisione." },
+      { tipo: "numerico", domanda: "Risparmio annuo sui costi cash 150.000 €, ammortamento 100.000 €, aliquota 24%. Qual è il flusso di cassa annuo incrementale?", risposta: 138000, tolleranza: 1, unita: "€", spiegazione: "(150.000 − 100.000) × 0,76 + 100.000 = 138.000 €. Oppure 150.000 × 0,76 + 100.000 × 0,24." },
+      { tipo: "numerico", domanda: "Nello stesso caso, quanto vale lo scudo fiscale annuo dell'ammortamento?", risposta: 24000, tolleranza: 1, unita: "€", spiegazione: "100.000 × 24% = 24.000 €." },
+      { tipo: "numerico", domanda: "Investimento 500.000 €, flussi di 138.000 € all'anno. Payback in anni? (una cifra decimale)", risposta: 3.6, tolleranza: 0.05, unita: "anni", spiegazione: "500.000 / 138.000 = 3,62 anni." },
+      { tipo: "numerico", domanda: "VAN con 5 anni di flussi da 138.000 €, costo del capitale 8%, investimento 500.000 €, senza valore residuo? (arrotonda all'euro)", risposta: 50994, tolleranza: 50, unita: "€", spiegazione: "Fattore di rendita a 5 anni all'8% = 3,9927. 138.000 × 3,9927 = 550.994; VAN = 50.994 €." },
+      { tipo: "vf", domanda: "L'ammortamento, non essendo un'uscita di cassa, non influisce in alcun modo sui flussi di cassa.", risposta: false, spiegazione: "Influisce attraverso le imposte: le riduce di ammortamento × aliquota." },
+      { tipo: "aperta", domanda: "La produzione propone un nuovo forno: «si ripaga in 3 anni». Quali domande fai prima di validare il business case?", criteri: "Scenario di confronto senza investimento; prudenza sui risparmi (prezzi dell'energia, volumi); VAN e vita utile, non solo payback; circolante e costi di avviamento; fermo impianto durante l'installazione; effetti fiscali e incentivi; sensitività sulle ipotesi chiave.", spiegazione: "Il payback da solo non basta: servono i flussi incrementali contro lo scenario senza forno, ipotesi prudenti e verificabili, il VAN sulla vita utile e una sensitività sulle variabili che pesano di più." },
+    ],
+  },
+  {
+    id: "ctr-marginalita-cliente", v: 2, area: "controllo", modulo: "marginalita", livello: "Avanzato", titolo: "Marginalità per cliente e cost-to-serve", argomento: "Price waterfall e costi di servizio", minuti: 25,
+    teoria: T(
+      "## Oltre il margine di prodotto",
+      "Due clienti che comprano gli stessi articoli allo stesso listino possono avere redditività molto diverse. La differenza sta negli sconti fuori fattura e nei costi per servirli.",
+      "## La cascata del prezzo",
+      "`listino − sconti in fattura − premi di fine anno − contributi promozionali − costo della dilazione = prezzo netto netto`",
+      "Spesso i premi e i contributi restano in una voce non allocata: il margine per cliente risulta sovrastimato proprio per chi ottiene più condizioni.",
+      "## Cost-to-serve",
+      "Costi che variano con il comportamento del cliente, non con il prodotto:",
+      "- numero di ordini e di righe d'ordine (gestione ordini, prelievo);",
+      "- consegne urgenti o frazionate, trasporto;",
+      "- resi e reclami;",
+      "- assistenza tecnica e commerciale;",
+      "- dilazione di pagamento: `crediti medi × tasso di finanziamento`.",
+      "Si allocano con driver di attività, nella logica dell'activity-based costing, non in proporzione al fatturato.",
+      "## Il conto economico per cliente",
+      "| Voce | Cliente A | Cliente B |",
+      "|---|---|---|",
+      "| Fatturato netto fattura | 1.000 | 1.000 |",
+      "| Premi di fine anno | −20 | −80 |",
+      "| Costo del venduto | −600 | −600 |",
+      "| Cost-to-serve | −60 | −210 |",
+      "| **Margine cliente** | **320** | **110** |",
+      "Stesso fatturato, margine quasi triplo.",
+      "## Cosa farne",
+      "La curva della redditività cumulata per cliente mostra spesso che una parte dei clienti genera oltre il 100% del margine e un'altra lo riduce. Le leve non sono solo di prezzo: ordine minimo, listini legati al servizio, termini di pagamento, consegne consolidate, premi condizionati."
+    ),
+    esercizi: [
+      { tipo: "numerico", domanda: "Crediti medi verso un cliente 400.000 €, tasso di finanziamento 5%. Costo annuo della dilazione?", risposta: 20000, tolleranza: 1, unita: "€", spiegazione: "400.000 × 5% = 20.000 €." },
+      { tipo: "numerico", domanda: "Gestire una riga d'ordine costa 4 €. Il cliente A fa 1.500 righe l'anno, il cliente B 9.000. Differenza di costo annuo tra B e A?", risposta: 30000, tolleranza: 1, unita: "€", spiegazione: "(9.000 − 1.500) × 4 = 30.000 €." },
+      { tipo: "numerico", domanda: "Nella tabella della teoria, quanto vale il margine del cliente B in percentuale del fatturato netto fattura?", risposta: 11, tolleranza: 0.05, unita: "%", spiegazione: "110 / 1.000 = 11%, contro il 32% del cliente A." },
+      { tipo: "multipla", domanda: "Perché lasciare i premi di fine anno in una voce non allocata distorce l'analisi?", opzioni: ["Perché riduce il fatturato totale", "Perché sovrastima il margine dei clienti che ricevono più premi", "Perché aumenta il costo del venduto", "Perché altera le imposte"], risposta: 1, spiegazione: "I clienti con più premi sembrano più redditizi di quanto siano." },
+      { tipo: "vf", domanda: "Il cost-to-serve si alloca in proporzione al fatturato di ciascun cliente.", risposta: false, spiegazione: "Si alloca con driver di attività (ordini, righe, consegne, resi): allocarlo sul fatturato annullerebbe proprio le differenze che vuoi vedere." },
+      { tipo: "multipla", domanda: "La curva della redditività cumulata per cliente mostra tipicamente che:", opzioni: ["Tutti i clienti contribuiscono in proporzione al fatturato", "Una parte dei clienti genera oltre il 100% del margine e altri lo riducono", "I clienti più grandi sono sempre i più redditizi", "Il margine cresce linearmente con il fatturato"], risposta: 1, spiegazione: "È la forma tipica: il picco supera il margine totale e la coda lo riduce." },
+      { tipo: "aperta", domanda: "Un grande cliente risulta a margine negativo dopo il cost-to-serve. Il commerciale propone di chiudere il rapporto. Cosa analizzi e cosa proponi?", criteri: "Verifica di allocazioni e driver; costi evitabili distinti da quelli che resterebbero; contributo alla copertura dei costi fissi e alla saturazione; leve alternative (ordine minimo, fee di servizio, termini di pagamento, consegne consolidate, premi condizionati); impatto su volumi e rapporto commerciale.", spiegazione: "Prima si verifica quanto dei costi allocati sparirebbe davvero senza il cliente. Spesso conviene rinegoziare le condizioni di servizio piuttosto che perdere volumi che coprono costi fissi." },
+    ],
+  },
+  {
+    id: "ctr-forecast-driver", v: 2, area: "controllo", modulo: "budget", livello: "Specialistico", titolo: "Rolling forecast e forecast basato sui driver", argomento: "Oltre il budget annuale", minuti: 30,
+    teoria: T(
+      "## I limiti del budget annuale",
+      "Il budget fotografa ipotesi fatte mesi prima e perde valore dopo il primo trimestre. Il rischio è gestire l'azienda guardando lo scostamento da un piano che nessuno ritiene più realistico.",
+      "## Rolling forecast",
+      "È una previsione aggiornata a intervalli regolari, di solito mensili o trimestrali, su un orizzonte costante: per esempio sempre 12 o 18 mesi in avanti. A ogni aggiornamento si aggiunge un periodo in coda.",
+      "- **Vantaggi**: orizzonte sempre utile, reazione rapida, meno negoziazione.",
+      "- **Rischi**: servono un processo snello, dati tempestivi e disciplina. Se ogni aggiornamento diventa un piccolo budget, il processo non regge.",
+      "## Forecast basato sui driver",
+      "Invece di prevedere ogni voce, si modellano poche variabili che spiegano la maggior parte del risultato e si derivano le altre:",
+      "- **ricavi** = volumi per mercato × prezzo medio × cambio;",
+      "- **materie prime** = volumi × consumo standard × prezzo delle materie;",
+      "- **energia** = volumi × consumo specifico × prezzo dell'energia;",
+      "- **personale** = organico × costo medio × giorni lavorati.",
+      "Individua i 5-10 driver che muovono l'80% dell'EBITDA e concentra lì il tempo.",
+      "## Misurare l'accuratezza",
+      "`errore % = (forecast − consuntivo) / consuntivo`",
+      "Un errore sistematicamente dello stesso segno è un **bias**: segnala ottimismo o prudenza strutturale e va discusso con chi fornisce le ipotesi.",
+      "## Obiettivo e previsione sono cose diverse",
+      "L'obiettivo è ciò che si vuole ottenere; il forecast è ciò che si ritiene accadrà. Se coincidono per definizione, il forecast smette di informare.",
+      "> Scenari e sensitività sui driver principali, per esempio ±10% sul prezzo del gas, spesso servono più di un unico numero «preciso»."
+    ),
+    esercizi: [
+      { tipo: "numerico", domanda: "Volumi 2 milioni di m², consumo specifico 1,8 Smc di gas per m², prezzo 0,45 €/Smc. Costo del gas previsto?", risposta: 1620000, tolleranza: 1, unita: "€", spiegazione: "2.000.000 × 1,8 × 0,45 = 1.620.000 €." },
+      { tipo: "numerico", domanda: "Se il prezzo del gas sale del 10%, di quanto aumenta il costo?", risposta: 162000, tolleranza: 1, unita: "€", spiegazione: "1.620.000 × 10% = 162.000 €." },
+      { tipo: "numerico", domanda: "Forecast di fatturato 10,5 milioni €, consuntivo 10 milioni €. Errore percentuale di previsione?", risposta: 5, tolleranza: 0.05, unita: "%", spiegazione: "(10,5 − 10) / 10 = +5%." },
+      { tipo: "multipla", domanda: "Negli ultimi 8 mesi il forecast delle vendite in Germania ha sempre superato il consuntivo del 4-7%. Questo indica:", opzioni: ["Un errore casuale", "Un bias ottimistico", "Un problema di cambio", "Una stagionalità"], risposta: 1, spiegazione: "Un errore sempre dello stesso segno è un bias, non rumore." },
+      { tipo: "multipla", domanda: "Un rolling forecast a 12 mesi aggiornato a fine settembre 2026 copre fino a:", opzioni: ["Dicembre 2026", "Giugno 2027", "Settembre 2027", "Dicembre 2027"], risposta: 2, spiegazione: "Da ottobre 2026 a settembre 2027: sempre 12 mesi in avanti." },
+      { tipo: "vf", domanda: "In un forecast basato sui driver conviene prevedere in dettaglio ogni conto di costo.", risposta: false, spiegazione: "Il valore sta nel concentrarsi sui pochi driver che spiegano gran parte del risultato." },
+      { tipo: "aperta", domanda: "La direzione vuole passare dal budget annuale a un rolling forecast trimestrale. Proponi il disegno del processo: orizzonte, driver, ruoli, calendario e misura dell'accuratezza.", criteri: "Orizzonte di 4-6 trimestri; 5-10 driver chiave con un responsabile ciascuno; calendario legato alla chiusura; dettaglio minore del budget; separazione tra obiettivo e forecast; misura di errore e bias; scenari; collegamento a cassa e investimenti; gestione del cambiamento.", spiegazione: "Un processo leggero e ripetibile: pochi driver con responsabili chiari, aggiornamento a data fissa dopo la chiusura, obiettivi separati dalle previsioni e accuratezza misurata nel tempo." },
     ],
   },
 
@@ -704,10 +949,19 @@ const applyUpdates = (obj, upd) => normalize(Object.keys(upd).reduce((acc, p) =>
 function clean(upd) { const o = {}; Object.keys(upd).forEach((k) => { const v = upd[k]; o[k] = v === null || v === undefined ? null : JSON.parse(JSON.stringify(v)); }); return o; }
 
 function seedUpdates(d) {
-  if ((d.meta.seedVersion || 0) >= SEED_VERSION) return null;
+  const ver = d.meta.seedVersion || 0;
+  if (ver >= SEED_VERSION) return null;
   const upd = {};
-  Object.values(SEED_AREAS).forEach((a) => { if (!d.areas[a.id]) upd["areas/" + a.id] = a; });
-  SEED_LESSONS.forEach((l) => { if (!d.lessons[l.id]) upd["lessons/" + l.id] = { ...l, creata: today(), origine: "iniziale" }; });
+  Object.values(SEED_AREAS).forEach((a) => {
+    const cur = d.areas[a.id];
+    if (!cur) upd["areas/" + a.id] = a;
+    else if (ver < 2 && a.id === "controllo") upd["areas/controllo"] = { ...cur, nome: a.nome, descrizione: a.descrizione, livelli: a.livelli, moduli: a.moduli };
+  });
+  SEED_LESSONS.forEach((l) => {
+    const cur = d.lessons[l.id];
+    if (!cur) { if ((l.v || 1) > ver) upd["lessons/" + l.id] = { ...l, creata: today(), origine: "iniziale" }; }
+    else if (l.modulo && cur.modulo !== l.modulo) upd["lessons/" + l.id + "/modulo"] = l.modulo;
+  });
   upd["meta/seedVersion"] = SEED_VERSION;
   return upd;
 }
@@ -715,6 +969,7 @@ function seedUpdates(d) {
 const opts = (d) => ({ soglia: Number(d.settings.soglia) || 70, blocco: d.settings.bloccoLivelli !== false, profilo: d.settings.profilo || PROFILO_DEFAULT });
 const areaList = (d) => Object.values(d.areas).filter((a) => a && a.id).sort((a, b) => (a.ordine || 99) - (b.ordine || 99) || String(a.nome).localeCompare(String(b.nome)));
 const livelliOf = (a) => (Array.isArray(a.livelli) && a.livelli.length ? a.livelli : ["Base", "Intermedio", "Avanzato"]);
+const moduliOf = (a) => (a && Array.isArray(a.moduli) ? a.moduli.filter((m) => m && m.id) : []);
 const lessonsOf = (d, areaId, livello) => Object.values(d.lessons)
   .filter((l) => l && l.area === areaId && (!livello || l.livello === livello))
   .sort((a, b) => (a.ordine || 0) - (b.ordine || 0) || String(a.creata || "").localeCompare(String(b.creata || "")) || String(a.titolo).localeCompare(String(b.titolo)));
@@ -805,10 +1060,21 @@ const TIPI = T(
   '{"tipo":"completa","domanda":"frase con ___ al posto della parte mancante","risposta":["forma accettata","variante"],"spiegazione":"..."}',
   '{"tipo":"aperta","domanda":"...","criteri":"cosa deve contenere una risposta completa","spiegazione":"traccia di soluzione"}'
 );
-function promptLezioni(d, area, livello, argomento, n, deboli) {
+function promptLezioni(d, area, livello, argomento, n, deboli, modulo) {
   const o = opts(d);
   const lingua = isLingua(area);
-  const esistenti = lessonsOf(d, area.id).map((l) => `- [${l.livello}] ${l.titolo}${l.argomento ? " (" + l.argomento + ")" : ""}`).join("\n") || "- nessuna";
+  const mods = moduliOf(area);
+  const nomeMod = (id) => { const m = mods.find((x) => x.id === id); return m ? m.nome : ""; };
+  const esistenti = lessonsOf(d, area.id).map((l) => `- [${l.livello}${nomeMod(l.modulo) ? ", " + nomeMod(l.modulo) : ""}] ${l.titolo}${l.argomento ? " (" + l.argomento + ")" : ""}`).join("\n") || "- nessuna";
+  let modBlock = "";
+  if (mods.length) {
+    const conteggi = mods.map((m) => `- ${m.id} = ${m.nome} (${((c) => c + (c === 1 ? " lezione" : " lezioni"))(lessonsOf(d, area.id).filter((l) => l.modulo === m.id).length)})`).join("\n");
+    modBlock = T(
+      "Moduli dell'area (nel campo \"modulo\" usa uno di questi id):",
+      conteggi,
+      `Modulo richiesto: ${modulo ? `${nomeMod(modulo)} (id: "${modulo}")` : "scegli tu, privilegiando i moduli con meno lezioni"}`
+    );
+  }
   let weak = "";
   if (deboli) {
     const w = lessonsOf(d, area.id).filter((l) => d.progress[l.id] && d.progress[l.id].best < o.soglia);
@@ -829,6 +1095,7 @@ function promptLezioni(d, area, livello, argomento, n, deboli) {
     `Area: ${area.nome} (id: "${area.id}")`,
     `Livello: ${livello} (livelli dell'area: ${livelliOf(area).join(", ")}). Tara profondità e difficoltà su questo livello.`,
     `Argomento: ${argomento.trim() || "scegli tu un argomento utile, coerente con il livello e non ancora trattato"}`,
+    modBlock,
     "",
     "Lezioni già presenti nell'area (non ripeterle):",
     esistenti,
@@ -836,7 +1103,7 @@ function promptLezioni(d, area, livello, argomento, n, deboli) {
     regole(lingua),
     "",
     "FORMATO",
-    `{"lezioni":[{"titolo":"...","area":"${area.id}","livello":"${livello}","argomento":"...","minuti":20,"teoria":"...",${lingua ? '"vocaboli":[{"de":"die Abweichung","it":"lo scostamento","esempio":"..."}],' : ""}"esercizi":[...]}]}`,
+    `{"lezioni":[{"titolo":"...","area":"${area.id}","livello":"${livello}",${mods.length ? `"modulo":"${modulo || "id del modulo"}",` : ""}"argomento":"...","minuti":20,"teoria":"...",${lingua ? '"vocaboli":[{"de":"die Abweichung","it":"lo scostamento","esempio":"..."}],' : ""}"esercizi":[...]}]}`,
     "",
     TIPI
   );
@@ -852,11 +1119,12 @@ function promptArea(d, nome, obiettivo) {
     "RICHIESTA",
     `Crea una nuova area di studio: "${nome}".${obiettivo.trim() ? " Obiettivo: " + obiettivo.trim() : ""}`,
     "Definisci 3 livelli (per le lingue usa i livelli QCER, per il resto Base, Intermedio, Avanzato) e scrivi una prima lezione per ciascun livello.",
+    "Se l'area è ampia, dividila in 4-9 moduli tematici e indica in ogni lezione il modulo a cui appartiene; altrimenti ometti \"moduli\" e \"modulo\".",
     "",
     regole(lingua),
     "",
     "FORMATO",
-    `{"area":{"id":"${id}","nome":"${nome}","descrizione":"una frase","colore":"#RRGGBB scuro e leggibile","livelli":["...","...","..."]},"lezioni":[{"titolo":"...","area":"${id}","livello":"...","argomento":"...","minuti":20,"teoria":"...",${lingua ? '"vocaboli":[{"de":"...","it":"...","esempio":"..."}],' : ""}"esercizi":[...]}]}`,
+    `{"area":{"id":"${id}","nome":"${nome}","descrizione":"una frase","colore":"#RRGGBB scuro e leggibile","livelli":["...","...","..."],"moduli":[{"id":"...","nome":"..."}]},"lezioni":[{"titolo":"...","area":"${id}","livello":"...","modulo":"id del modulo","argomento":"...","minuti":20,"teoria":"...",${lingua ? '"vocaboli":[{"de":"...","it":"...","esempio":"..."}],' : ""}"esercizi":[...]}]}`,
     "",
     TIPI
   );
@@ -919,8 +1187,11 @@ function parseImport(text, d) {
       livelli: Array.isArray(a.livelli) && a.livelli.length ? a.livelli.map(String) : ["Base", "Intermedio", "Avanzato"],
       ordine: known[id] ? known[id].ordine : Object.keys(known).length + 1,
     };
+    const mm = (Array.isArray(a.moduli) ? a.moduli : []).map((m) => (typeof m === "string" ? { id: slug(m), nome: m } : m && (m.id || m.nome) ? { id: slug(m.id || m.nome), nome: String(m.nome || m.id) } : null)).filter(Boolean);
+    if (mm.length) area.moduli = mm;
     known[id] = area; upd["areas/" + id] = area; nAree++;
   });
+  const nuoviModuli = {};
   lezioni.forEach((l, k) => {
     if (!l || !l.titolo) { errors.push(`Lezione ${k + 1}: manca il titolo.`); return; }
     const key = slug(l.area || "");
@@ -928,16 +1199,28 @@ function parseImport(text, d) {
     if (!area) { errors.push(`«${l.titolo}»: l'area «${l.area}» non esiste. Creala prima o correggi il campo area.`); return; }
     const livs = livelliOf(area);
     const liv = livs.find((x) => String(x).toLowerCase() === String(l.livello || "").toLowerCase()) || livs[0];
+    let modulo = "";
+    if (l.modulo) {
+      const mods = nuoviModuli[area.id] || moduliOf(area);
+      const key = slug(l.modulo);
+      const found = mods.find((m) => m.id === key || slug(m.nome) === key);
+      if (found) modulo = found.id;
+      else { modulo = key; nuoviModuli[area.id] = [...mods, { id: key, nome: String(l.modulo) }]; }
+    }
     const esercizi = (Array.isArray(l.esercizi) ? l.esercizi : []).filter((e) => e && e.tipo && e.domanda);
     if (!esercizi.length) errors.push(`«${l.titolo}»: nessun esercizio valido, importata solo la teoria.`);
     let id = slug(area.id + "-" + l.titolo);
     while (d.lessons[id] || upd["lessons/" + id]) id = slug(area.id + "-" + l.titolo) + "-" + Math.random().toString(36).slice(2, 5);
     upd["lessons/" + id] = {
-      id, area: area.id, livello: liv, titolo: String(l.titolo), argomento: String(l.argomento || ""), minuti: Number(l.minuti) || 15,
+      id, area: area.id, livello: liv, modulo, titolo: String(l.titolo), argomento: String(l.argomento || ""), minuti: Number(l.minuti) || 15,
       teoria: String(l.teoria || ""), vocaboli: Array.isArray(l.vocaboli) ? l.vocaboli.filter((v) => v && v.de && v.it) : [],
       esercizi, creata: today(), origine: "claude",
     };
     nLez++; dove[area.id + "|" + liv] = { area: area.id, nome: area.nome, liv };
+  });
+  Object.keys(nuoviModuli).forEach((aid) => {
+    if (upd["areas/" + aid]) upd["areas/" + aid] = { ...upd["areas/" + aid], moduli: nuoviModuli[aid] };
+    else upd["areas/" + aid + "/moduli"] = nuoviModuli[aid];
   });
   vocaboli.forEach((v) => { if (v && v.de && v.it) { const id = slug(v.de); upd["vocab/" + id] = { id, de: v.de, it: v.it, esempio: v.esempio || "", box: 1, due: today(), creata: today() }; nVoc++; } });
   if (!nAree && !nLez && !nVoc && !errors.length) errors.push("Non ho trovato aree, lezioni o vocaboli nel testo.");
@@ -1136,21 +1419,45 @@ function Area({ data, id, apply }) {
         </div>
       )}
       {ls.length === 0 && <div className="note">Nessuna lezione in questo livello. Chiedine di nuove a Claude.</div>}
-      {ls.map((l) => {
-        const p = data.progress[l.id];
-        const inner = (
-          <>
-            <div><div className="lrow-t">{l.titolo}</div><div className="lrow-m">{l.argomento && <span>{l.argomento}</span>}<span>{l.minuti || 15} min</span>{p && <span>{p.storico ? p.storico.length : 1} {p.storico && p.storico.length === 1 ? "tentativo" : "tentativi"}</span>}</div></div>
-            <span className={"badge" + (p ? (p.best >= soglia ? " ok" : " low") : "")}>{p ? p.best + "%" : "Da fare"}</span>
-          </>
-        );
-        return locked
-          ? <div key={l.id} className="lrow locked" aria-disabled="true">{inner}</div>
-          : <a key={l.id} className="lrow" href={"#/lezione/" + encodeURIComponent(l.id)}>{inner}</a>;
-      })}
+      {(() => {
+        const mods = moduliOf(a);
+        const row = (l) => {
+          const p = data.progress[l.id];
+          const inner = (
+            <>
+              <div><div className="lrow-t">{l.titolo}</div><div className="lrow-m">{l.argomento && <span>{l.argomento}</span>}<span>{l.minuti || 15} min</span>{p && <span>{p.storico ? p.storico.length : 1} {p.storico && p.storico.length === 1 ? "tentativo" : "tentativi"}</span>}</div></div>
+              <span className={"badge" + (p ? (p.best >= soglia ? " ok" : " low") : "")}>{p ? p.best + "%" : "Da fare"}</span>
+            </>
+          );
+          return locked
+            ? <div key={l.id} className="lrow locked" aria-disabled="true">{inner}</div>
+            : <a key={l.id} className="lrow" href={"#/lezione/" + encodeURIComponent(l.id)}>{inner}</a>;
+        };
+        if (!mods.length) return ls.map(row);
+        const gruppi = [...mods.map((m) => ({ m, items: ls.filter((l) => l.modulo === m.id) })),
+          { m: { id: "_altro", nome: "Altre lezioni" }, items: ls.filter((l) => !mods.some((m) => m.id === l.modulo)) }].filter((g) => g.items.length);
+        return gruppi.map((g) => <div key={g.m.id}><h3 className="mod">{g.m.nome}</h3>{g.items.map(row)}</div>);
+      })()}
       <div className="row" style={{ marginTop: 20 }}>
         <a className="btn ghost" href={`#/contenuti/${a.id}/${encodeURIComponent(liv)}`}>Nuove lezioni per {liv}</a>
       </div>
+      {moduliOf(a).length > 0 && (
+        <>
+          <h2 className="sec">Moduli</h2>
+          <p className="muted small" style={{ marginTop: 0 }}>Quante lezioni hai per modulo, su tutti i livelli. Dove sei scoperto, chiedine di nuove.</p>
+          {moduliOf(a).map((m) => {
+            const tutte = lessonsOf(data, a.id).filter((l) => l.modulo === m.id);
+            const fatte = tutte.filter((l) => data.progress[l.id]);
+            const media = fatte.length ? Math.round(fatte.reduce((s, l) => s + data.progress[l.id].best, 0) / fatte.length) : null;
+            return (
+              <div key={m.id} className="lrow">
+                <div style={{ flex: 1 }}><div>{m.nome}</div><div className="lrow-m"><span>{tutte.length} {tutte.length === 1 ? "lezione" : "lezioni"}</span>{tutte.length > 0 && <span>{fatte.length} svolte</span>}{media !== null && <span>media {media}%</span>}</div></div>
+                <a className="btn small ghost" href={`#/contenuti/${a.id}/${encodeURIComponent(liv)}/${m.id}`}>Chiedi lezioni</a>
+              </div>
+            );
+          })}
+        </>
+      )}
     </div>
   );
 }
@@ -1279,6 +1586,7 @@ function Lezione({ data, id, apply, notify }) {
       <a className="back" href={"#/area/" + area.id}><Icon n="back" />{area.nome}, {l.livello}</a>
       <h1 className="page">{l.titolo}</h1>
       <div className="lesson-meta">
+        {(() => { const m = moduliOf(area).find((x) => x.id === l.modulo); return m ? <span>{m.nome}</span> : null; })()}
         {l.argomento && <span>{l.argomento}</span>}
         <span>{l.minuti || 15} minuti</span>
         <span>{es.length} esercizi</span>
@@ -1434,22 +1742,28 @@ function Ripasso({ data, apply, notify }) {
 
 function Contenuti({ data, param, apply, notify }) {
   const aree = areaList(data);
-  const [pa, pl] = String(param || "").split("/").map((x) => decodeURIComponent(x || ""));
+  const [pa, pl, pm] = String(param || "").split("/").map((x) => decodeURIComponent(x || ""));
   const [areaId, setAreaId] = useState(pa && (data.areas[pa] || pa === "nuova") ? pa : (aree[0] ? aree[0].id : "nuova"));
   const area = data.areas[areaId];
   const [livello, setLivello] = useState(pl || (area ? livelliOf(area)[0] : ""));
   const [argomento, setArgomento] = useState("");
+  const [modulo, setModulo] = useState(pm || "");
   const [n, setN] = useState(1);
   const [deboli, setDeboli] = useState(true);
   const [nome, setNome] = useState("");
   const [obiettivo, setObiettivo] = useState("");
   const [txt, setTxt] = useState("");
   const [esito, setEsito] = useState(null);
-  useEffect(() => { if (area && !livelliOf(area).includes(livello)) setLivello(livelliOf(area)[0]); }, [areaId]);
+  const primo = useRef(true);
+  useEffect(() => {
+    if (area && !livelliOf(area).includes(livello)) setLivello(livelliOf(area)[0]);
+    if (primo.current) { primo.current = false; return; }
+    setModulo("");
+  }, [areaId]);
 
   const prompt = areaId === "nuova"
     ? (nome.trim() ? promptArea(data, nome.trim(), obiettivo) : "")
-    : area ? promptLezioni(data, area, livello || livelliOf(area)[0], argomento, n, deboli) : "";
+    : area ? promptLezioni(data, area, livello || livelliOf(area)[0], argomento, n, deboli, moduliOf(area).some((m) => m.id === modulo) ? modulo : "") : "";
 
   const copia = async () => { const ok = await copyText(prompt); notify(ok ? "Richiesta copiata. Incollala in una chat con Claude." : "Copia non riuscita: seleziona il testo qui sotto e copialo a mano."); };
   const importa = () => {
@@ -1489,6 +1803,14 @@ function Contenuti({ data, param, apply, notify }) {
                   <select value={n} onChange={(e) => setN(Number(e.target.value))}>{[1, 2, 3].map((k) => <option key={k} value={k}>{k}</option>)}</select>
                 </label>
               </div>
+              {moduliOf(area).length > 0 && (
+                <label className="f"><span>Modulo</span>
+                  <select value={modulo} onChange={(e) => setModulo(e.target.value)}>
+                    <option value="">Scelga Claude, tra i meno coperti</option>
+                    {moduliOf(area).map((m) => <option key={m.id} value={m.id}>{m.nome}</option>)}
+                  </select>
+                </label>
+              )}
               <label className="f"><span>Argomento (facoltativo)</span><input value={argomento} placeholder="Lascia vuoto e sceglie Claude" onChange={(e) => setArgomento(e.target.value)} /></label>
               <label className="check"><input type="checkbox" checked={deboli} onChange={(e) => setDeboli(e.target.checked)} />Includi i miei punti deboli in quest'area</label>
             </>
