@@ -182,6 +182,16 @@ details summary{cursor:pointer; font-weight:600; font-size:14.5px; color:var(--i
 .center{min-height:80vh; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:24px}
 .login{width:100%; max-width:380px; text-align:left}
 
+svg.board{display:block; width:100%; max-width:420px; height:auto; border-radius:6px; box-shadow:0 1px 0 var(--line), 0 6px 18px rgba(20,20,30,.12); user-select:none; -webkit-user-select:none}
+.sq-l{fill:#EFE5D2} .sq-d{fill:#B58863}
+.sq-last{fill:#E2C14A; fill-opacity:.42} .sq-sel{fill:#5C8FD6; fill-opacity:.45}
+.sq-dot{fill:#1d2533; fill-opacity:.28} .sq-cap{fill:none; stroke:#1d2533; stroke-opacity:.35; stroke-width:3}
+.pz{font-family:"Segoe UI Symbol","Apple Symbols","Noto Sans Symbols 2","DejaVu Sans",serif; font-size:37px; text-anchor:middle; dominant-baseline:central; paint-order:stroke; pointer-events:none}
+.pz-w{fill:#FFFFFF; stroke:#1B1B1B; stroke-width:1.5px} .pz-b{fill:#1B1B1B; stroke:#1B1B1B; stroke-width:.6px}
+.coord{font-family:var(--sans); font-size:9.5px; font-weight:700; pointer-events:none} .coord.on-l{fill:#B58863} .coord.on-d{fill:#EFE5D2}
+figure.diagram{margin:14px 0 18px} figure.diagram figcaption{font-family:var(--sans); font-size:14px; color:var(--muted); margin-top:8px}
+.mossa{margin-top:6px}
+.teoria pre.code{font-size:13px; line-height:1.5; margin:10px 0 16px}
 @media (prefers-reduced-motion: reduce){ *{animation:none !important; transition:none !important} }
 </style>
 </head>
@@ -191,6 +201,7 @@ details summary{cursor:pointer; font-weight:600; font-size:14.5px; color:var(--i
 <script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js"></script>
 <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
 <script src="https://unpkg.com/@babel/standalone@7.26.4/babel.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chess.js@0.10.3/chess.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
@@ -212,7 +223,7 @@ const FIREBASE_CONFIG = {
   appId: "1:704489945008:web:1951eed95cc4fd3308c875",
 };
 const ROOT = "gradus";
-const SEED_VERSION = 2;
+const SEED_VERSION = 3;
 const PROFILO_DEFAULT = "Controller junior con laurea magistrale in economia aziendale. Tedesco livello B1, obiettivo B2.";
 const INTERVALLI = [0, 1, 3, 7, 14, 30]; // giorni per scatola 1..5 del ripasso
 
@@ -270,6 +281,11 @@ function renderMd(md) {
   const isUl = (l) => /^\s*[-•]\s+/.test(l), isOl = (l) => /^\s*\d+[.)]\s+/.test(l);
   while (i < lines.length) {
     const line = lines[i];
+    if (line.trim().startsWith("```")) {
+      const code = []; i++;
+      while (i < lines.length && !lines[i].trim().startsWith("```")) { code.push(lines[i]); i++; }
+      i++; html += '<pre class="code">' + esc(code.join("\n")) + "</pre>"; continue;
+    }
     if (!line.trim()) { i++; continue; }
     if (line.startsWith("### ")) { html += "<h4>" + inline(line.slice(4)) + "</h4>"; i++; continue; }
     if (line.startsWith("## ")) { html += "<h3>" + inline(line.slice(3)) + "</h3>"; i++; continue; }
@@ -310,6 +326,28 @@ const SEED_AREAS = {
     ],
   },
   tedesco: { id: "tedesco", nome: "Tedesco", descrizione: "Da B1 a B2: grammatica, lessico economico e scrittura formale.", colore: "#3A5BA0", livelli: ["B1", "B1+", "B2"], ordine: 4 },
+  qlik: {
+    id: "qlik", nome: "Qlik Sense", descrizione: "Espressioni, set analysis e modello dati per costruire report di controllo.",
+    colore: "#2F6F8F", livelli: ["Base", "Intermedio", "Avanzato"], ordine: 5,
+    moduli: [
+      { id: "interfaccia", nome: "Interfaccia e visualizzazioni" },
+      { id: "modello", nome: "Modello dati e script" },
+      { id: "espressioni", nome: "Espressioni e aggregazioni" },
+      { id: "setanalysis", nome: "Set analysis" },
+      { id: "variabili", nome: "Variabili e master item" },
+      { id: "controllo", nome: "Report per il controllo" },
+    ],
+  },
+  scacchi: {
+    id: "scacchi", nome: "Scacchi", descrizione: "Tattica, finali, aperture e strategia. Livelli per fascia Elo: sotto 1200, 1200-1600, oltre 1600.",
+    colore: "#8A5A2B", livelli: ["Principiante", "Intermedio", "Avanzato"], ordine: 6,
+    moduli: [
+      { id: "tattica", nome: "Tattica" },
+      { id: "finali", nome: "Finali" },
+      { id: "aperture", nome: "Aperture" },
+      { id: "strategia", nome: "Strategia" },
+    ],
+  },
 };
 
 const SEED_LESSONS = [
@@ -927,10 +965,190 @@ const SEED_LESSONS = [
       { tipo: "aperta", domanda: "Riscrivi in stile formale con almeno due Nomen-Verb-Verbindungen: «Wir haben entschieden, das Projekt zu stoppen. Die Kunden haben das Konzept kritisiert.»", criteri: "Almeno due strutture nome più verbo corrette; registro formale; grammatica corretta; correggi e dai la versione corretta.", spiegazione: "Esempio: Wir haben die Entscheidung getroffen, das Projekt einzustellen. Die Kunden haben Kritik an dem Konzept geübt." },
     ],
   },
+  /* ---------- QLIK SENSE ---------- */
+  {
+    id: "qlik-base-espressioni", v: 3, area: "qlik", modulo: "espressioni", livello: "Base", titolo: "Dimensioni, misure e prime espressioni", argomento: "Aggregazioni, rapporti, TOTAL", minuti: 20,
+    teoria: T(
+      "## Dimensioni e misure",
+      "Una **dimensione** è il campo con cui raggruppi: Cliente, Mese, Paese. Una **misura** è un'espressione aggregata, calcolata per ogni valore della dimensione, come `Sum(Fatturato)`.",
+      "Ogni misura deve contenere una funzione di aggregazione, e il suo valore dipende dalle selezioni correnti e dalle dimensioni del grafico.",
+      "## Le aggregazioni principali",
+      "- `Sum(Fatturato)`: somma.",
+      "- `Count(DISTINCT Cliente)`: clienti diversi. Senza DISTINCT conti le righe.",
+      "- `Avg(Prezzo)`: media semplice. Per una media ponderata usa `Sum(Fatturato) / Sum(Quantita)`.",
+      "- `Min`, `Max`, e `Only(Campo)`, che restituisce il valore solo se è unico, altrimenti null.",
+      "## Rapporti e percentuali",
+      "Il margine percentuale corretto è `Sum(Margine) / Sum(Fatturato)`, non la media dei margini percentuali delle singole righe.",
+      "Il peso sul totale si calcola con `Sum(Fatturato) / Sum(TOTAL Fatturato)`: TOTAL ignora le dimensioni del grafico.",
+      "## Condizioni e valori mancanti",
+      "- `If(Sum(Fatturato) > 0, Sum(Margine) / Sum(Fatturato))` evita divisioni per zero.",
+      "- `Alt(Sum(Budget), 0)` sostituisce un risultato nullo con zero.",
+      "## Separatori e formati",
+      "In Qlik gli argomenti si separano sempre con la **virgola**, anche con impostazioni italiane: è la differenza principale rispetto a Excel in italiano. Il formato si imposta con `Num(Sum(Margine) / Sum(Fatturato), '0,0%')` o dalle proprietà della misura.",
+      "> Qlik è associativo: una selezione filtra l'intero modello e i valori esclusi diventano grigi. Per questo una misura cambia appena selezioni un anno o un cliente."
+    ),
+    esercizi: [
+      { tipo: "completa", domanda: "Per contare i clienti diversi scrivi Count(___ Cliente).", risposta: ["DISTINCT"], spiegazione: "Count(DISTINCT Cliente) conta i valori unici; senza DISTINCT conteresti le righe." },
+      { tipo: "multipla", domanda: "Quale espressione dà il margine percentuale corretto per Paese?", opzioni: ["Avg(MarginePerc)", "Sum(Margine) / Sum(Fatturato)", "Sum(Margine / Fatturato)", "Count(Margine) / Count(Fatturato)"], risposta: 1, spiegazione: "Il rapporto tra somme pesa ogni riga per il suo fatturato; la media dei percentuali no." },
+      { tipo: "completa", domanda: "Peso di ogni Paese sul totale: Sum(Fatturato) / Sum(___ Fatturato).", risposta: ["TOTAL"], spiegazione: "TOTAL fa ignorare al denominatore le dimensioni del grafico." },
+      { tipo: "vf", domanda: "In Qlik Sense gli argomenti delle funzioni si separano con il punto e virgola, come nell'Excel italiano.", risposta: false, spiegazione: "In Qlik si usa sempre la virgola." },
+      { tipo: "multipla", domanda: "Only(Valuta) restituisce:", opzioni: ["Il primo valore trovato", "Il valore se è unico nelle righe considerate, altrimenti null", "Il valore più frequente", "Sempre null"], risposta: 1, spiegazione: "Only restituisce un valore solo quando ce n'è uno solo." },
+      { tipo: "numerico", domanda: "Due righe: fatturato 1.000 con margine 300, e fatturato 3.000 con margine 600. Qual è il margine percentuale corretto sul totale?", risposta: 22.5, tolleranza: 0.05, unita: "%", spiegazione: "900 / 4.000 = 22,5%. La media dei due percentuali (30% e 20%) darebbe 25%, sbagliato." },
+      { tipo: "aperta", domanda: "Perché Avg(MarginePerc) dà un risultato diverso da Sum(Margine) / Sum(Fatturato), e quale usi in un report per la direzione?", criteri: "Media semplice contro media ponderata; le righe piccole pesano come quelle grandi; nel report si usa il rapporto tra somme; eventuale esempio numerico.", spiegazione: "La media dei percentuali dà lo stesso peso a ogni riga, qualunque sia il fatturato. Il rapporto tra somme è la media ponderata ed è quello coerente con il conto economico." },
+    ],
+  },
+  {
+    id: "qlik-int-setanalysis", v: 3, area: "qlik", modulo: "setanalysis", livello: "Intermedio", titolo: "Set analysis: confronti tra periodi e scenari", argomento: "Budget, anno precedente, selezioni ignorate", minuti: 25,
+    teoria: T(
+      "## A cosa serve",
+      "Una misura normalmente rispetta le selezioni. La set analysis definisce, per quella sola espressione, un insieme di record diverso: l'anno precedente, il budget, tutti i clienti.",
+      "## Sintassi",
+      "`Sum({<Anno={2025}>} Fatturato)`",
+      "- le graffe esterne racchiudono il set;",
+      "- tra `< >` ci sono i modificatori, nella forma campo = elementi;",
+      "- l'identificatore iniziale indica da dove partire: `$` le selezioni correnti (è il predefinito), `1` tutto il modello, ignorando ogni selezione.",
+      "`Sum({1} Fatturato)` restituisce il fatturato totale, qualunque cosa tu abbia selezionato.",
+      "## Più modificatori e scenari",
+      "`Sum({<Scenario={'Budget'}, Anno={2026}>} Importo)`",
+      "I valori di testo vanno tra apici singoli; i modificatori si separano con la virgola.",
+      "## Ignorare una selezione",
+      "`Sum({<Mese=>} Fatturato)` ignora la selezione sul Mese e rispetta tutte le altre. È il modo classico di mostrare il progressivo annuo accanto al dato del mese.",
+      "## Espressioni dinamiche",
+      "`Sum({<Anno={$(=Max(Anno)-1)}>} Fatturato)` calcola l'anno precedente rispetto all'ultimo anno selezionato. `$(=...)` valuta l'espressione prima e inserisce il risultato nel set.",
+      "## Un limite da ricordare",
+      "Il set viene calcolato una sola volta per tutto il grafico, non riga per riga. Per confrontare ogni riga con il proprio anno precedente in una tabella per anno servono altre soluzioni, come un campo Anno precedente nel modello.",
+      "> Uno schema pratico per il controllo: tre misure affiancate, Consuntivo, Budget e Anno precedente, più gli scostamenti in valore e in percentuale."
+    ),
+    esercizi: [
+      { tipo: "completa", domanda: "Sum({___} Fatturato) restituisce il fatturato ignorando tutte le selezioni.", risposta: ["1"], spiegazione: "L'identificatore 1 parte dall'intero modello." },
+      { tipo: "multipla", domanda: "Quale sintassi restituisce l'importo di budget?", opzioni: ["Sum({<Scenario={'Budget'}>} Importo)", "Sum({Scenario='Budget'} Importo)", "Sum(<Scenario={Budget}> Importo)", "Sum({<Scenario=Budget>} Importo)"], risposta: 0, spiegazione: "Graffe esterne, modificatore tra < >, valori tra graffe e testo tra apici singoli." },
+      { tipo: "multipla", domanda: "Sum({<Mese=>} Fatturato) restituisce:", opzioni: ["Zero", "Il fatturato ignorando la selezione sul mese", "Il fatturato dei mesi senza nome", "Un errore di sintassi"], risposta: 1, spiegazione: "Campo = senza valori significa: ignora la selezione su quel campo." },
+      { tipo: "completa", domanda: "Anno precedente dinamico: Sum({<Anno={$(=Max(Anno)___1)}>} Fatturato)", risposta: ["-"], spiegazione: "Max(Anno)-1: l'anno prima dell'ultimo selezionato." },
+      { tipo: "vf", domanda: "La set analysis viene valutata separatamente per ogni riga della tabella.", risposta: false, spiegazione: "Viene valutata una volta per l'intero oggetto." },
+      { tipo: "numerico", domanda: "È selezionato il 2026. Fatturato 2026 = 12 milioni, 2025 = 10 milioni. Che valore mostra Sum(Fatturato) / Sum({<Anno={$(=Max(Anno)-1)}>} Fatturato) - 1, in percentuale?", risposta: 20, tolleranza: 0.05, unita: "%", spiegazione: "12 / 10 − 1 = +20%." },
+      { tipo: "aperta", domanda: "Scrivi le misure per una tabella per Paese con Consuntivo, Budget, Anno precedente e scostamento percentuale sul budget. I dati sono in un'unica tabella con i campi Scenario ('Consuntivo', 'Budget'), Anno e Importo.", criteri: "Tre misure con set analysis corrette (Scenario e Anno dinamico); scostamento come rapporto meno 1 o differenza su budget; gestione della divisione per zero; virgole come separatore.", spiegazione: "Consuntivo: Sum({<Scenario={'Consuntivo'}>} Importo). Budget: Sum({<Scenario={'Budget'}>} Importo). Anno precedente: Sum({<Scenario={'Consuntivo'}, Anno={$(=Max(Anno)-1)}>} Importo). Scostamento: If(Budget <> 0, Consuntivo / Budget - 1), usando le espressioni complete o i master item." },
+    ],
+  },
+  {
+    id: "qlik-avz-script", v: 3, area: "qlik", modulo: "modello", livello: "Avanzato", titolo: "Script di caricamento: mapping, concatenazione e calendario", argomento: "Modello a stella senza chiavi sintetiche", minuti: 30,
+    teoria: T(
+      "## Il modello associativo",
+      "Qlik collega le tabelle attraverso i campi con lo stesso nome. Se due tabelle condividono più campi nasce una **chiave sintetica**; se tra le stesse tabelle esistono più percorsi nasce un **riferimento circolare**. Entrambi vanno evitati.",
+      "## Modello a stella",
+      "Al centro una tabella dei fatti (movimenti di vendita), intorno le tabelle dimensionali (clienti, articoli, calendario), ciascuna collegata da una sola chiave.",
+      "## Mapping e ApplyMap",
+      "Per aggiungere un solo attributo senza JOIN:",
+      "```",
+      "MapPaese:",
+      "MAPPING LOAD CodiceCliente, Paese FROM [lib://Dati/Clienti.qvd] (qvd);",
+      "",
+      "Vendite:",
+      "LOAD *, ApplyMap('MapPaese', CodiceCliente, 'Non assegnato') AS Paese",
+      "FROM [lib://Dati/Vendite.qvd] (qvd);",
+      "```",
+      "La tabella di mapping ha esattamente due colonne; il terzo argomento è il valore restituito se il codice non si trova. A differenza di un LEFT JOIN, ApplyMap non moltiplica mai le righe.",
+      "## JOIN e CONCATENATE",
+      "- `LEFT JOIN (Vendite) LOAD ...` aggiunge colonne; se la chiave nella tabella di destra si ripete, le righe si moltiplicano.",
+      "- `CONCATENATE (Fatti) LOAD ...` accoda righe: è il modo di mettere consuntivo e budget nella stessa tabella dei fatti, distinti da un campo Scenario.",
+      "## Calendario master",
+      "Una tabella calendario collegata alla data dei fatti, generata con un ciclo:",
+      "```",
+      "Calendario:",
+      "LOAD Date($(vMin) + IterNo() - 1) AS Data",
+      "AUTOGENERATE 1 WHILE $(vMin) + IterNo() - 1 <= $(vMax);",
+      "```",
+      "Poi, con un LOAD RESIDENT, si derivano Anno, Mese, Trimestre e AnnoMese.",
+      "## RESIDENT",
+      "`LOAD ... RESIDENT NomeTabella;` rilegge una tabella già in memoria per trasformarla. Alla fine si elimina quella che non serve con `DROP TABLE`.",
+      "> Carica i dati grezzi una volta in file QVD e costruisci il modello partendo da lì: gli aggiornamenti diventano più rapidi e lo script più facile da mantenere."
+    ),
+    esercizi: [
+      { tipo: "multipla", domanda: "Due tabelle condividono i campi Anno e CodiceCliente. Cosa crea Qlik?", opzioni: ["Un riferimento circolare", "Una chiave sintetica", "Un errore di caricamento", "Una concatenazione automatica"], risposta: 1, spiegazione: "Più campi in comune generano una chiave sintetica." },
+      { tipo: "completa", domanda: "La funzione che usa una tabella di mapping è ___('MapPaese', CodiceCliente, 'Non assegnato').", risposta: ["ApplyMap"], spiegazione: "ApplyMap cerca il codice nella tabella di mapping." },
+      { tipo: "vf", domanda: "Una tabella di mapping può avere tre colonne, se serve restituire due attributi.", risposta: false, spiegazione: "Ha sempre due colonne: per due attributi servono due mapping." },
+      { tipo: "multipla", domanda: "Per mettere consuntivo e budget in un'unica tabella dei fatti, con un campo Scenario, usi:", opzioni: ["LEFT JOIN", "CONCATENATE", "ApplyMap", "KEEP"], risposta: 1, spiegazione: "CONCATENATE accoda le righe del budget a quelle del consuntivo." },
+      { tipo: "numerico", domanda: "Vendite ha 1.000 righe, tutte con un cliente presente in Anagrafica. In Anagrafica 50 clienti compaiono due volte, e riguardano 200 righe di Vendite. Dopo LEFT JOIN (Vendite) LOAD * RESIDENT Anagrafica, quante righe ha Vendite?", risposta: 1200, tolleranza: 0, unita: "righe", spiegazione: "Le 200 righe dei clienti duplicati raddoppiano: 1.000 + 200 = 1.200. Con ApplyMap resterebbero 1.000." },
+      { tipo: "completa", domanda: "Per rileggere una tabella già caricata si scrive LOAD ... ___ NomeTabella;", risposta: ["RESIDENT"], spiegazione: "RESIDENT legge dalla memoria invece che da una fonte esterna." },
+      { tipo: "aperta", domanda: "Descrivi il modello dati di un'app di analisi vendite con consuntivo, budget, clienti, articoli e calendario.", criteri: "Modello a stella; fatti concatenati con campo Scenario; dimensioni collegate da una sola chiave; calendario master sulla data dei fatti; ApplyMap per attributi singoli; nessuna chiave sintetica; caricamento da QVD.", spiegazione: "Una tabella Fatti con consuntivo e budget concatenati e il campo Scenario; tabelle Clienti, Articoli e Calendario collegate da una chiave ciascuna; attributi singoli portati con ApplyMap; dati grezzi in QVD." },
+    ],
+  },
+
+  /* ---------- SCACCHI ---------- */
+  {
+    id: "sca-pri-traversa-forchetta", v: 3, area: "scacchi", modulo: "tattica", livello: "Principiante", titolo: "Matto sulla traversa e forchetta", argomento: "I primi motivi tattici", minuti: 15,
+    teoria: T(
+      "## Il matto sulla traversa",
+      "Quando il re arrocca e i suoi pedoni restano sulla seconda traversa, non ha case di fuga. Una torre o una donna che arriva sull'ottava traversa dà matto.",
+      "FEN: 6k1/5ppp/8/8/8/8/5PPP/3R2K1 w - - 0 1 | Il bianco muove e dà matto",
+      "La difesa classica è creare per tempo una casa di fuga, per esempio spingendo h6 (o h3 per il bianco), oppure tenere un pezzo a guardia dell'ottava traversa.",
+      "## La forchetta",
+      "Un pezzo attacca contemporaneamente due bersagli. Il cavallo è lo specialista: attacca case di colore diverso e non si può bloccare.",
+      "FEN: r2q3k/6pp/8/6N1/8/8/5PPP/R5K1 w - - 0 1 | Il bianco muove: il cavallo trova una forchetta",
+      "La forchetta più forte è quella con scacco, perché l'avversario deve per forza rispondere allo scacco e perde l'altro pezzo.",
+      "## Come cercarle",
+      "Prima di ogni mossa guarda le mosse **forzanti**, in quest'ordine: scacchi, catture, minacce. È lì che si nascondono quasi tutti i colpi tattici."
+    ),
+    esercizi: [
+      { tipo: "mossa", domanda: "Il bianco muove e dà matto in una mossa.", fen: "6k1/5ppp/8/8/8/8/5PPP/3R2K1 w - - 0 1", soluzione: ["Rd8#"], spiegazione: "Td8 matto: il re nero è chiuso dai propri pedoni." },
+      { tipo: "mossa", domanda: "Il bianco muove e vince materiale.", fen: "r2q3k/6pp/8/6N1/8/8/5PPP/R5K1 w - - 0 1", soluzione: ["Nf7+", "Kg8", "Nxd8"], spiegazione: "Cf7+ attacca re e donna; dopo Rg8, Cxd8 vince la donna in cambio del cavallo." },
+      { tipo: "mossa", domanda: "Dopo 1.e4 e5 2.Ac4 Cc6 3.Dh5 Cf6?? il bianco muove e dà matto.", fen: "r1bqkb1r/pppp1ppp/2n2n2/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR w KQkq - 4 4", soluzione: ["Qxf7#"], spiegazione: "Dxf7 matto, il «matto del barbiere»: f7 è difeso solo dal re." },
+      { tipo: "multipla", domanda: "Qual è l'ordine consigliato per esaminare le mosse forzanti?", opzioni: ["Minacce, catture, scacchi", "Scacchi, catture, minacce", "Catture, scacchi, minacce", "Solo le catture"], risposta: 1, spiegazione: "Gli scacchi sono le mosse più forzanti, poi le catture, poi le minacce." },
+      { tipo: "vf", domanda: "Il cavallo può dare una forchetta a due pezzi che stanno su case dello stesso colore della casa da cui parte.", risposta: false, spiegazione: "Il cavallo cambia colore a ogni mossa: attacca sempre case di colore opposto a quella su cui si trova." },
+      { tipo: "multipla", domanda: "Qual è la difesa più semplice contro il matto sulla traversa?", opzioni: ["Spostare la donna sull'ala di donna", "Creare una casa di fuga con un pedone", "Scambiare tutti i cavalli", "Arroccare lungo"], risposta: 1, spiegazione: "Una spinta come h6 dà al re una casa di fuga." },
+    ],
+  },
+  {
+    id: "sca-int-finali-donna", v: 3, area: "scacchi", modulo: "finali", livello: "Intermedio", titolo: "Finali elementari: donna contro re, stallo e regola del quadrato", argomento: "Tecnica di base nei finali", minuti: 20,
+    teoria: T(
+      "## Re e donna contro re",
+      "Il metodo: la donna restringe la zona del re avversario, restando a un salto di cavallo da lui; il proprio re si avvicina; il matto arriva sul bordo.",
+      "FEN: k7/8/1K6/8/8/8/8/7Q w - - 0 1 | Il bianco muove: ci sono due matti in una mossa",
+      "## Attenzione allo stallo",
+      "Se il re avversario non è sotto scacco e non ha mosse legali, la partita è patta. Succede spesso quando la donna si avvicina troppo senza dare scacco.",
+      "FEN: k7/8/2K5/8/8/8/8/1Q6 w - - 0 1 | Una mossa dà matto, un'altra dà stallo",
+      "## La regola del quadrato",
+      "Per capire se un re ferma un pedone libero senza aiuto del proprio re: disegna il quadrato che ha come lato la distanza tra il pedone e la casa di promozione. Se il re avversario è dentro il quadrato, o ci entra con la sua mossa, raggiunge il pedone.",
+      "## L'opposizione",
+      "Due re sulla stessa colonna con una casa in mezzo: chi **non** deve muovere ha l'opposizione. Nei finali di re e pedone l'opposizione decide spesso tra vittoria e patta."
+    ),
+    esercizi: [
+      { tipo: "mossa", domanda: "Il bianco muove e dà matto in una mossa.", fen: "k7/8/1K6/8/8/8/8/7Q w - - 0 1", soluzione: ["Qh8#"], spiegazione: "Dh8 e Db7 danno entrambe matto: vale qualunque mossa che dia matto." },
+      { tipo: "multipla", domanda: "Nella posizione del secondo diagramma (re nero a8, re bianco c6, donna bianca b1), quale mossa dà stallo?", opzioni: ["Db7", "Db6", "Db8+", "Da2+"], risposta: 1, spiegazione: "Dopo Db6 il re nero non è sotto scacco e non ha case libere: stallo. Db7 invece è matto, perché la donna è protetta dal re." },
+      { tipo: "mossa", domanda: "Stessa posizione del secondo diagramma: il bianco muove e dà matto.", fen: "k7/8/2K5/8/8/8/8/1Q6 w - - 0 1", soluzione: ["Qb7#"], spiegazione: "Db7 matto: la donna è protetta dal re in c6." },
+      { tipo: "vf", domanda: "Pedone bianco in a4, re nero in e4, muove il nero, nessun altro pezzo: il re nero raggiunge il pedone.", risposta: true, spiegazione: "Il re è dentro il quadrato a4-a8-e8-e4: con Rd5, Rc6, Rb7 arriva in tempo." },
+      { tipo: "multipla", domanda: "Due re sulla stessa colonna con una casa in mezzo: chi ha l'opposizione?", opzioni: ["Chi deve muovere", "Chi non deve muovere", "Il bianco, sempre", "Chi ha più pedoni"], risposta: 1, spiegazione: "Ha l'opposizione chi ha appena mosso: l'avversario deve cedere terreno." },
+      { tipo: "aperta", domanda: "Spiega a parole il metodo per dare matto con re e donna contro re, e come eviti lo stallo.", criteri: "Restringere con la donna a un salto di cavallo; avvicinare il re; matto sul bordo con donna protetta o con il re in opposizione; controllare sempre che il re avversario abbia una mossa se non è sotto scacco.", spiegazione: "La donna chiude il re avversario in una zona sempre più piccola, poi il re si avvicina e il matto si dà sul bordo. Prima di ogni mossa di donna si controlla che il re avversario abbia ancora una casa." },
+    ],
+  },
+  {
+    id: "sca-avz-combinazioni", v: 3, area: "scacchi", modulo: "tattica", livello: "Avanzato", titolo: "Combinazioni: eliminazione del difensore e matto affogato", argomento: "Sacrifici forzati", minuti: 25,
+    teoria: T(
+      "## Eliminare il difensore",
+      "Se un solo pezzo impedisce un matto o protegge un bersaglio, lo si cattura o lo si devia, anche a costo di sacrificare materiale.",
+      "FEN: 3r2k1/5ppp/3Q4/q7/8/8/5PPP/3R2K1 w - - 0 1 | Il bianco muove e dà matto in due",
+      "La torre d8 è l'unico pezzo che protegge l'ottava traversa. Il bianco la elimina e la colonna d si apre per l'altra torre.",
+      "## Il matto affogato",
+      "Il re è circondato dai propri pezzi e un cavallo gli dà scacco. Il motivo classico: sacrificio di donna per attirare una torre in g8, poi cavallo in f7.",
+      "FEN: 4r2k/6pp/7N/3Q4/8/8/5PPP/6K1 w - - 0 1 | Il bianco muove e dà matto in due",
+      "## Come si calcola una combinazione",
+      "1. Individua il motivo: re senza case di fuga, pezzo sovraccarico, pezzo indifeso.",
+      "2. Elenca le mosse forzanti: scacchi, catture, minacce.",
+      "3. Per ogni candidata, considera **tutte** le risposte dell'avversario, non solo quella che speri.",
+      "4. Verifica la posizione finale: il bilancio materiale o il matto deve reggere."
+    ),
+    esercizi: [
+      { tipo: "mossa", domanda: "Il bianco muove e dà matto in due mosse.", fen: "3r2k1/5ppp/3Q4/q7/8/8/5PPP/3R2K1 w - - 0 1", soluzione: ["Qxd8+", "Qxd8", "Rxd8#"], spiegazione: "Dxd8+ Dxd8 (forzata) Txd8 matto: la donna nera è stata attirata via e la traversa resta indifesa." },
+      { tipo: "mossa", domanda: "Il bianco muove e dà matto in due mosse.", fen: "4r2k/6pp/7N/3Q4/8/8/5PPP/6K1 w - - 0 1", soluzione: ["Qg8+", "Rxg8", "Nf7#"], spiegazione: "Dg8+ Txg8 (il re non può prendere perché il cavallo controlla g8), poi Cf7 matto affogato." },
+      { tipo: "multipla", domanda: "Nel matto affogato il re non può muovere perché è bloccato da:", opzioni: ["Pezzi avversari", "I propri pezzi", "Il bordo della scacchiera soltanto", "Pedoni avversari"], risposta: 1, spiegazione: "Il re è soffocato dai propri pezzi, e il cavallo dà scacco." },
+      { tipo: "vf", domanda: "Nel calcolo di una combinazione basta considerare la risposta migliore dell'avversario secondo te.", risposta: false, spiegazione: "Vanno considerate tutte le risposte forzate o plausibili: il colpo deve funzionare contro ognuna." },
+      { tipo: "multipla", domanda: "Un pezzo che difende contemporaneamente due compiti si dice:", opzioni: ["Inchiodato", "Sovraccarico", "Intrappolato", "Passato"], risposta: 1, spiegazione: "È sovraccarico: se lo si costringe ad assolvere un compito, lascia scoperto l'altro." },
+      { tipo: "aperta", domanda: "Descrivi il metodo che usi per calcolare una variante forzata e per evitare di dimenticare una difesa dell'avversario.", criteri: "Mosse candidate forzanti; albero delle risposte; controllo di scacchi intermedi e catture dell'avversario; valutazione della posizione finale; ricontrollo prima di muovere.", spiegazione: "Si parte dalle mosse forzanti, per ciascuna si elencano tutte le risposte (compresi scacchi e catture intermedie dell'avversario) e si valuta la posizione finale. Prima di muovere si ricontrolla la linea principale." },
+    ],
+  },
 ];
 
 /* ================= Dati ================= */
-const KEYS = ["areas", "lessons", "progress", "vocab", "settings", "meta", "sblocchi", "attivita"];
+const KEYS = ["areas", "lessons", "progress", "vocab", "settings", "meta", "sblocchi", "attivita", "tattica"];
 function normalize(v) { v = v || {}; const o = {}; KEYS.forEach((k) => { o[k] = v[k] && typeof v[k] === "object" ? v[k] : {}; }); return o; }
 function setIn(obj, path, value) {
   const keys = path.split("/");
@@ -1005,6 +1223,7 @@ function grade(ex, ans) {
       const acc = Array.isArray(ex.risposta) ? ex.risposta : [ex.risposta];
       return { punti: ans && acc.some((a) => norm(a) === norm(ans)) ? 1 : 0 };
     }
+    case "mossa": return { punti: ans === "ok" ? 1 : 0 };
     case "aperta": return { punti: 0, pending: true };
     default: return { punti: 0 };
   }
@@ -1013,6 +1232,7 @@ function fmtAnswer(ex, ans) {
   if (ans === undefined || ans === "") return "(nessuna risposta)";
   if (ex.tipo === "multipla") return (ex.opzioni || [])[Number(ans)] ?? ans;
   if (ex.tipo === "vf") return ans === "true" ? "Vero" : "Falso";
+  if (ex.tipo === "mossa") return ans === "ok" ? "risolto" : String(ans).startsWith("ko:") ? "ho giocato " + sanIt(String(ans).slice(3)) : String(ans);
   return String(ans);
 }
 function fmtCorrect(ex) {
@@ -1020,6 +1240,7 @@ function fmtCorrect(ex) {
   if (ex.tipo === "vf") return String(ex.risposta) === "true" ? "Vero" : "Falso";
   if (ex.tipo === "numerico") return fmtNum(ex.risposta) + (ex.unita ? " " + ex.unita : "");
   if (ex.tipo === "completa") return (Array.isArray(ex.risposta) ? ex.risposta : [ex.risposta]).join(" / ");
+  if (ex.tipo === "mossa") return (Array.isArray(ex.soluzione) ? ex.soluzione : []).map(sanIt).join("  ");
   return "";
 }
 function parseVoto(t) {
@@ -1039,7 +1260,14 @@ function parseVoto(t) {
 
 /* ================= Richieste per Claude ================= */
 const isLingua = (a) => a && (a.id === "tedesco" || /tedesco|deutsch|inglese|english|lingua/i.test(a.nome || ""));
-function regole(lingua) {
+const isScacchi = (a) => a && (a.id === "scacchi" || /scacchi|chess/i.test(a.nome || ""));
+const REGOLE_SCACCHI = T(
+  "- Diagrammi nella teoria: una riga che inizia con \"FEN: \" seguita dalla posizione in notazione FEN completa e, facoltativa, una didascalia dopo \"|\".",
+  "- Negli esercizi \"mossa\" usa la notazione algebrica standard inglese (K, Q, R, B, N, O-O), per esempio Nf7+ o Qxd8. Nelle spiegazioni puoi usare la notazione italiana.",
+  "- \"soluzione\" è la sequenza completa: mossa di chi risolve, risposta forzata dell'avversario, e così via, e termina con una mossa di chi risolve.",
+  "- Usa solo posizioni legali di cui sei certo, con una soluzione chiaramente migliore: privilegia matti in 1-3 mosse, tattiche forzate e posizioni classiche note. Le posizioni o mosse non legali vengono scartate in importazione."
+);
+function regole(lingua, scacchi) {
   return T(
     "REGOLE",
     `- Teoria in italiano, 300-500 parole, con esempi concreti${lingua ? "; spiegazioni in italiano, esempi e frasi nella lingua studiata" : " e numerici dove ha senso"}.`,
@@ -1049,9 +1277,11 @@ function regole(lingua) {
     "- Negli esercizi numerici indica l'unità e una tolleranza ragionevole per gli arrotondamenti.",
     "- Negli esercizi \"completa\" metti un solo spazio ___ ed elenca tutte le varianti accettabili.",
     lingua ? "- Aggiungi 6-10 \"vocaboli\" utili (sostantivi con articolo), ognuno con una frase d'esempio." : "- Non inserire il campo \"vocaboli\".",
+    ...(scacchi ? [REGOLE_SCACCHI] : []),
     "- Rispondi SOLO con il JSON valido, senza testo prima o dopo e senza blocchi di codice."
   );
 }
+const TIPO_MOSSA = '{"tipo":"mossa","domanda":"Il bianco muove e dà matto in due","fen":"posizione FEN completa","soluzione":["Qg8+","Rxg8","Nf7#"],"spiegazione":"..."}';
 const TIPI = T(
   "TIPI DI ESERCIZIO",
   '{"tipo":"multipla","domanda":"...","opzioni":["...","...","...","..."],"risposta":0,"spiegazione":"..."}   (risposta = indice dell\'opzione giusta, da 0)',
@@ -1100,12 +1330,13 @@ function promptLezioni(d, area, livello, argomento, n, deboli, modulo) {
     "Lezioni già presenti nell'area (non ripeterle):",
     esistenti,
     weak,
-    regole(lingua),
+    regole(lingua, isScacchi(area)),
     "",
     "FORMATO",
     `{"lezioni":[{"titolo":"...","area":"${area.id}","livello":"${livello}",${mods.length ? `"modulo":"${modulo || "id del modulo"}",` : ""}"argomento":"...","minuti":20,"teoria":"...",${lingua ? '"vocaboli":[{"de":"die Abweichung","it":"lo scostamento","esempio":"..."}],' : ""}"esercizi":[...]}]}`,
     "",
-    TIPI
+    TIPI,
+    ...(isScacchi(area) ? [TIPO_MOSSA] : [])
   );
 }
 function promptArea(d, nome, obiettivo) {
@@ -1148,7 +1379,7 @@ function promptCorrezione(area, l, ex, risposta) {
 function promptErrori(area, l, idx, ans) {
   const righe = idx.map((i, k) => {
     const ex = l.esercizi[i];
-    return T(`${k + 1}. ${ex.domanda}`, `   Mia risposta: ${fmtAnswer(ex, ans[i])}`, `   Risposta corretta: ${fmtCorrect(ex)}`);
+    return T(`${k + 1}. ${ex.domanda}`, ...(ex.fen ? [`   Posizione (FEN): ${ex.fen}`] : []), `   Mia risposta: ${fmtAnswer(ex, ans[i])}`, `   Risposta corretta: ${fmtCorrect(ex)}`);
   });
   return T(
     `Sto studiando con Gradus: ${area.nome}, livello ${l.livello}, lezione «${l.titolo}».`,
@@ -1207,7 +1438,12 @@ function parseImport(text, d) {
       if (found) modulo = found.id;
       else { modulo = key; nuoviModuli[area.id] = [...mods, { id: key, nome: String(l.modulo) }]; }
     }
-    const esercizi = (Array.isArray(l.esercizi) ? l.esercizi : []).filter((e) => e && e.tipo && e.domanda);
+    let scartati = 0;
+    const esercizi = (Array.isArray(l.esercizi) ? l.esercizi : []).filter((e) => e && e.tipo && e.domanda).filter((e) => {
+      if (e.tipo !== "mossa") return true;
+      const ok = validaMossa(e); if (!ok) scartati++; return ok;
+    });
+    if (scartati) errors.push(`«${l.titolo}»: ${scartati === 1 ? "un esercizio di scacchi scartato" : scartati + " esercizi di scacchi scartati"} perché la posizione o le mosse non sono legali.`);
     if (!esercizi.length) errors.push(`«${l.titolo}»: nessun esercizio valido, importata solo la teoria.`);
     let id = slug(area.id + "-" + l.titolo);
     while (d.lessons[id] || upd["lessons/" + id]) id = slug(area.id + "-" + l.titolo) + "-" + Math.random().toString(36).slice(2, 5);
@@ -1295,6 +1531,168 @@ function Stairs({ area, data, big }) {
       </div>
     </div>
   );
+}
+
+/* ================= Scacchi ================= */
+const hasChess = () => typeof window.Chess === "function";
+function sanIt(s) {
+  const m = { K: "R", Q: "D", R: "T", B: "A", N: "C" };
+  return String(s || "").replace(/^[KQRBN]/, (c) => m[c]).replace(/=([QRBN])/, (_, c) => "=" + m[c]);
+}
+function parseFenBoard(fen) {
+  const rows = String(fen || "").trim().split(/\s+/)[0].split("/");
+  if (rows.length !== 8) return null;
+  const b = [];
+  for (const r of rows) {
+    const row = [];
+    for (const ch of r) {
+      if (/[1-8]/.test(ch)) { for (let k = 0; k < +ch; k++) row.push(null); }
+      else if (/[prnbqkPRNBQK]/.test(ch)) row.push(ch);
+      else return null;
+    }
+    if (row.length !== 8) return null;
+    b.push(row);
+  }
+  return b;
+}
+function validaMossa(e) {
+  if (!e.fen || !Array.isArray(e.soluzione) || !e.soluzione.length) return false;
+  if (!parseFenBoard(e.fen)) return false;
+  if (!hasChess()) return true;
+  const c = new Chess();
+  if (!c.validate_fen(e.fen).valid || !c.load(e.fen)) return false;
+  for (const m of e.soluzione) { if (!c.move(String(m), { sloppy: true })) return false; }
+  return e.soluzione.length % 2 === 1;
+}
+const GLIFI = { k: "\u265A", q: "\u265B", r: "\u265C", b: "\u265D", n: "\u265E", p: "\u265F" };
+function Board({ fen, flip, onSquare, selected, targets = [], last = [] }) {
+  const b = parseFenBoard(fen);
+  if (!b) return <div className="note">Posizione non valida.</div>;
+  const S = 45, cells = [], pieces = [], marks = [];
+  for (let row = 0; row < 8; row++) for (let col = 0; col < 8; col++) {
+    const f = flip ? 7 - col : col, r = flip ? row : 7 - row;
+    const sq = "abcdefgh"[f] + (r + 1);
+    const x = col * S, y = row * S;
+    const dark = (f + r) % 2 === 0;
+    cells.push(<rect key={"c" + sq} x={x} y={y} width={S} height={S} className={dark ? "sq-d" : "sq-l"} />);
+    if (last.includes(sq)) marks.push(<rect key={"l" + sq} x={x} y={y} width={S} height={S} className="sq-last" />);
+    if (selected === sq) marks.push(<rect key={"s" + sq} x={x} y={y} width={S} height={S} className="sq-sel" />);
+    const p = b[7 - r][f];
+    if (targets.includes(sq)) marks.push(p ? <rect key={"t" + sq} x={x + 2} y={y + 2} width={S - 4} height={S - 4} rx="6" className="sq-cap" /> : <circle key={"t" + sq} cx={x + S / 2} cy={y + S / 2} r={S * 0.14} className="sq-dot" />);
+    if (p) {
+      const white = p === p.toUpperCase();
+      pieces.push(<text key={"p" + sq} x={x + S / 2} y={y + S / 2 + 2} className={"pz " + (white ? "pz-w" : "pz-b")}>{GLIFI[p.toLowerCase()] + "\uFE0E"}</text>);
+    }
+    if (col === 0) marks.push(<text key={"rk" + r} x={x + 3} y={y + 11} className={"coord " + (dark ? "on-d" : "on-l")}>{r + 1}</text>);
+    if (row === 7) marks.push(<text key={"fl" + f} x={x + S - 9} y={y + S - 4} className={"coord " + (dark ? "on-d" : "on-l")}>{"abcdefgh"[f]}</text>);
+  }
+  const hits = onSquare ? Array.from({ length: 64 }, (_, k) => {
+    const row = Math.floor(k / 8), col = k % 8, f = flip ? 7 - col : col, r = flip ? row : 7 - row, sq = "abcdefgh"[f] + (r + 1);
+    return <rect key={"h" + sq} x={col * S} y={row * S} width={S} height={S} fill="transparent" style={{ cursor: "pointer" }} onClick={() => onSquare(sq)} />;
+  }) : null;
+  return <svg className="board" viewBox={`0 0 ${8 * S} ${8 * S}`} role="img" aria-label={"Scacchiera: " + fen}>{cells}{marks}{pieces}{hits}</svg>;
+}
+function Teoria({ md }) {
+  const parts = []; let buf = []; let inCode = false;
+  String(md || "").split("\n").forEach((line) => {
+    if (line.trim().startsWith("```")) inCode = !inCode;
+    const m = !inCode && line.match(/^\s*FEN:\s*([^|]+?)\s*(?:\|\s*(.*))?$/i);
+    if (m) { if (buf.length) { parts.push({ t: "md", v: buf.join("\n") }); buf = []; } parts.push({ t: "fen", v: m[1].trim(), c: m[2] || "" }); }
+    else buf.push(line);
+  });
+  if (buf.length) parts.push({ t: "md", v: buf.join("\n") });
+  return (
+    <div className="teoria">
+      {parts.map((p, k) => p.t === "md"
+        ? <div key={k} dangerouslySetInnerHTML={{ __html: renderMd(p.v) }} />
+        : <figure key={k} className="diagram"><Board fen={p.v} flip={/\sb(\s|$)/.test(p.v)} />{p.c && <figcaption>{p.c}</figcaption>}</figure>)}
+    </div>
+  );
+}
+function MossaEx({ ex, value, onChange, locked }) {
+  const gRef = useRef(null);
+  const [fen, setFen] = useState(ex.fen);
+  const [step, setStep] = useState(0);
+  const [sel, setSel] = useState(null);
+  const [last, setLast] = useState([]);
+  const [msg, setMsg] = useState("");
+  if (!hasChess()) return <div className="note">Non riesco a caricare la libreria degli scacchi: controlla la connessione e ricarica la pagina.</div>;
+  if (!gRef.current) { const c = new Chess(); c.load(ex.fen); gRef.current = c; }
+  const g = gRef.current;
+  const sol = Array.isArray(ex.soluzione) ? ex.soluzione : [];
+  const flip = /\sb(\s|$)/.test(ex.fen);
+  const chiuso = !!value || locked;
+  const pulisci = (x) => String(x).replace(/[+#!?]/g, "");
+  const gioca = (mv) => {
+    const res = g.move({ from: mv.from, to: mv.to, promotion: mv.promotion });
+    setSel(null);
+    if (!res) return;
+    setFen(g.fen()); setLast([res.from, res.to]);
+    const atteso = sol[step];
+    const giusta = atteso && (pulisci(res.san) === pulisci(atteso) || (/#/.test(atteso) && g.in_checkmate()));
+    if (!giusta) { setMsg(`${sanIt(res.san)} non è la mossa giusta.`); onChange("ko:" + res.san); return; }
+    const next = step + 1;
+    if (next >= sol.length) { setStep(next); setMsg(`${sanIt(res.san)}: esatto!`); onChange("ok"); return; }
+    setStep(next); setMsg(`${sanIt(res.san)}: giusto, continua.`);
+    setTimeout(() => {
+      const r2 = g.move(String(sol[next]), { sloppy: true });
+      if (!r2) return;
+      setFen(g.fen()); setLast([r2.from, r2.to]); setStep(next + 1);
+      setMsg(`L'avversario risponde ${sanIt(r2.san)}. Tocca a te.`);
+    }, 450);
+  };
+  const clic = (sq) => {
+    if (chiuso) return;
+    if (sel) {
+      if (sq === sel) { setSel(null); return; }
+      const cand = g.moves({ square: sel, verbose: true }).filter((m) => m.to === sq);
+      if (cand.length) {
+        let mv = cand[0];
+        if (cand.length > 1) {
+          const pm = String(sol[step] || "").match(/=([QRBN])/);
+          const want = pm ? pm[1].toLowerCase() : "q";
+          mv = cand.find((m) => m.promotion === want) || cand.find((m) => m.promotion === "q") || cand[0];
+        }
+        gioca(mv); return;
+      }
+    }
+    const p = g.get(sq);
+    setSel(p && p.color === g.turn() ? sq : null);
+  };
+  const targets = sel && !chiuso ? g.moves({ square: sel, verbose: true }).map((m) => m.to) : [];
+  const tratto = new Chess(ex.fen).turn() === "w" ? "Muove il bianco" : "Muove il nero";
+  return (
+    <div className="mossa">
+      <Board fen={fen} flip={flip} onSquare={chiuso ? null : clic} selected={sel} targets={targets} last={last} />
+      <p className={"small " + (value === "ok" ? "okmsg" : String(value || "").startsWith("ko:") ? "err" : "muted")} style={{ margin: "8px 0 0" }}>{msg || `${tratto}. Tocca un pezzo, poi la casa di arrivo.`}</p>
+    </div>
+  );
+}
+const TEMI = [["mix", "Misto"], ["mateIn1", "Matto in 1"], ["mateIn2", "Matto in 2"], ["mateIn3", "Matto in 3"], ["fork", "Forchetta"], ["pin", "Inchiodatura"], ["skewer", "Infilata"], ["discoveredAttack", "Attacco di scoperta"], ["sacrifice", "Sacrificio"], ["deflection", "Deviazione"], ["endgame", "Finale"], ["opening", "Apertura"]];
+const DIFF = [["easiest", "Molto facile"], ["easier", "Facile"], ["normal", "Normale"], ["harder", "Difficile"], ["hardest", "Molto difficile"]];
+function puzzleFromApi(j) {
+  if (!j || !j.puzzle || !j.game) throw new Error("risposta inattesa");
+  const toks = String(j.game.pgn || "").split(/\s+/).map((t) => t.replace(/^\d+\.+/, "")).filter((t) => t && !/^(1-0|0-1|1\/2-1\/2|\*)$/.test(t));
+  const sol = j.puzzle.solution || [];
+  const tryN = (n) => {
+    const c = new Chess();
+    for (let k = 0; k < n; k++) if (!c.move(toks[k], { sloppy: true })) return null;
+    const start = c.fen(), san = [];
+    for (const u of sol) { const m = c.move({ from: u.slice(0, 2), to: u.slice(2, 4), promotion: u[4] }); if (!m) return null; san.push(m.san); }
+    return { fen: start, soluzione: san };
+  };
+  const ip = Number(j.puzzle.initialPly);
+  const cand = [toks.length, ip + 1, ip, ip + 2].filter((n, i, a) => Number.isFinite(n) && n >= 0 && n <= toks.length && a.indexOf(n) === i);
+  for (const n of cand) { const r = tryN(n); if (r && r.soluzione.length) return { id: String(j.puzzle.id), rating: j.puzzle.rating || null, temi: j.puzzle.themes || [], ...r }; }
+  throw new Error("posizione non ricostruibile");
+}
+async function fetchPuzzle(tema, diff) {
+  const q = new URLSearchParams();
+  if (tema && tema !== "mix") q.set("angle", tema);
+  if (diff) q.set("difficulty", diff);
+  const r = await fetch("https://lichess.org/api/puzzle/next?" + q.toString(), { headers: { Accept: "application/json" } });
+  if (!r.ok) throw new Error("errore " + r.status);
+  return puzzleFromApi(await r.json());
 }
 
 /* ================= Pagine ================= */
@@ -1407,6 +1805,12 @@ function Area({ data, id, apply }) {
       <h1 className="page">{a.nome}</h1>
       {a.descrizione && <p className="lede">{a.descrizione}</p>}
       <div style={{ margin: "22px 0 8px" }}><Stairs area={a} data={data} big /></div>
+      {a.id === "scacchi" && (
+        <a className="sugg" href="#/tattica" style={{ "--c": a.colore }}>
+          <div><div className="sugg-t">Allenamento tattico</div><div className="sugg-m">Problemi da Lichess per tema e difficoltà{Object.keys(data.tattica || {}).length ? `, ${Object.keys(data.tattica).length} svolti` : ""}</div></div>
+          <span className="go">Allenati</span>
+        </a>
+      )}
       <div className="seg" role="group" aria-label="Livello">
         {livs.map((lv, i) => (
           <button key={lv} aria-pressed={i === idx} onClick={() => setIdx(i)}>{!unl[i] && <Icon n="lock" />}{lv}</button>
@@ -1498,6 +1902,8 @@ function Esercizio({ ex, i, value, onChange, esito, voto, draft, onDraft, onVoto
     body = parts.length > 1
       ? <p className="ex-q">{parts[0]}{inp}{parts.slice(1).join("___")}</p>
       : <><p className="ex-q">{ex.domanda}</p>{inp}</>;
+  } else if (ex.tipo === "mossa") {
+    body = <MossaEx ex={ex} value={value} onChange={onChange} locked={done} />;
   } else if (aperta) {
     body = <textarea rows={5} value={value || ""} disabled={done} placeholder="Scrivi qui la tua risposta" aria-label={`Risposta all'esercizio ${i + 1}`} onChange={(e) => onChange(e.target.value)} />;
   }
@@ -1531,6 +1937,7 @@ function Lezione({ data, id, apply, notify }) {
   const [res, setRes] = useState(null);
   const [voti, setVoti] = useState({});
   const [draft, setDraft] = useState({});
+  const [tentativo, setTentativo] = useState(0);
   if (!l) return <><p className="lede">Questa lezione non esiste più.</p><a className="btn ghost" href="#/aree">Vai alle aree</a></>;
   const area = data.areas[l.area] || { id: l.area, nome: l.area, colore: "#47526B", livelli: [] };
   const es = Array.isArray(l.esercizi) ? l.esercizi : [];
@@ -1561,7 +1968,7 @@ function Lezione({ data, id, apply, notify }) {
     save(esiti, voti, ts);
     setTimeout(() => { const el = document.getElementById("risultato"); if (el) el.scrollIntoView({ behavior: "smooth", block: "start" }); }, 60);
   };
-  const riprova = () => { setAns({}); setRes(null); setVoti({}); setDraft({}); const el = document.getElementById("esercizi"); if (el) el.scrollIntoView({ block: "start" }); };
+  const riprova = () => { setAns({}); setRes(null); setVoti({}); setDraft({}); setTentativo((t) => t + 1); const el = document.getElementById("esercizi"); if (el) el.scrollIntoView({ block: "start" }); };
   const registra = (i) => {
     const v = parseVoto(draft[i]);
     if (!v) { notify("Non trovo un voto: incolla la risposta di Claude o scrivi un numero da 0 a 100."); return; }
@@ -1592,7 +1999,7 @@ function Lezione({ data, id, apply, notify }) {
         <span>{es.length} esercizi</span>
         {p && <span>Miglior risultato {p.best}%</span>}
       </div>
-      <div className="teoria" dangerouslySetInnerHTML={{ __html: renderMd(l.teoria) }} />
+      <Teoria md={l.teoria} />
 
       {vocaboli.length > 0 && (
         <>
@@ -1610,7 +2017,7 @@ function Lezione({ data, id, apply, notify }) {
       <h2 className="sec" id="esercizi">Esercizi</h2>
       {es.length === 0 && <p className="muted">Questa lezione non ha esercizi.</p>}
       {es.map((ex, i) => (
-        <Esercizio key={i} ex={ex} i={i} value={ans[i]} onChange={(v) => setAns({ ...ans, [i]: v })}
+        <Esercizio key={i + "-" + tentativo} ex={ex} i={i} value={ans[i]} onChange={(v) => setAns((prev) => ({ ...prev, [i]: v }))}
           esito={res ? res.esiti[i] : null} voto={voti[i]} draft={draft[i]} onDraft={(t) => setDraft({ ...draft, [i]: t })}
           onVoto={() => registra(i)}
           onCopia={async () => { const ok = await copyText(promptCorrezione(area, l, ex, ans[i])); notify(ok ? "Copiato. Incollalo in una chat con Claude." : "Copia non riuscita."); }} />
@@ -1635,6 +2042,61 @@ function Lezione({ data, id, apply, notify }) {
       )}
 
       <div style={{ marginTop: 40 }}><button className="linkbtn" onClick={elimina}>Elimina questa lezione</button></div>
+    </div>
+  );
+}
+
+function Tattica({ data, apply }) {
+  const [tema, setTema] = useState("mix");
+  const [diff, setDiff] = useState("normal");
+  const [pz, setPz] = useState(null);
+  const [stato, setStato] = useState("");
+  const [err, setErr] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [sol, setSol] = useState(false);
+  const carica = async () => {
+    setBusy(true); setErr(""); setStato(""); setSol(false);
+    try {
+      if (!hasChess()) throw new Error("libreria degli scacchi non caricata");
+      setPz(await fetchPuzzle(tema, diff));
+    } catch (e) { setPz(null); setErr(`Non riesco a scaricare il problema da Lichess (${e.message}). Controlla la connessione e riprova.`); }
+    setBusy(false);
+  };
+  const esito = (v) => {
+    if (stato || !pz) return;
+    setStato(v);
+    apply({ ["tattica/" + pz.id]: { ok: v === "ok", rating: pz.rating, tema, d: today() }, ["attivita/" + today()]: true });
+  };
+  const tutti = Object.values(data.tattica || {});
+  const risolti = tutti.filter((x) => x.ok).length;
+  const ultimi = tutti.filter((x) => x.d && x.d >= addDays(today(), -30));
+  const temaNome = (k) => (TEMI.find((t) => t[0] === k) || [k, k])[1];
+  return (
+    <div style={{ "--c": "#8A5A2B" }}>
+      <a className="back" href="#/area/scacchi"><Icon n="back" />Scacchi</a>
+      <h1 className="page">Allenamento tattico</h1>
+      <p className="lede">Problemi dal database pubblico di Lichess, verificati da un motore. Trova la mossa migliore: conta il primo tentativo.</p>
+      {tutti.length > 0 && <p className="muted small">Finora {tutti.length} {tutti.length === 1 ? "problema" : "problemi"}, {Math.round(risolti / tutti.length * 100)}% risolti. Ultimi 30 giorni: {ultimi.length}{ultimi.length ? `, ${Math.round(ultimi.filter((x) => x.ok).length / ultimi.length * 100)}% risolti` : ""}.</p>}
+      <div className="grid2">
+        <label className="f"><span>Tema</span><select value={tema} onChange={(e) => setTema(e.target.value)}>{TEMI.map(([k, t]) => <option key={k} value={k}>{t}</option>)}</select></label>
+        <label className="f"><span>Difficoltà</span><select value={diff} onChange={(e) => setDiff(e.target.value)}>{DIFF.map(([k, t]) => <option key={k} value={k}>{t}</option>)}</select></label>
+      </div>
+      <div className="row"><button className="btn" disabled={busy} onClick={carica}>{busy ? "Carico…" : pz ? "Nuovo problema" : "Inizia"}</button></div>
+      {err && <p className="err">{err}</p>}
+      {pz && (
+        <div style={{ marginTop: 18 }}>
+          <div className="lesson-meta">{pz.rating && <span>Valutazione {pz.rating}</span>}{pz.temi.slice(0, 3).map((t) => <span key={t}>{temaNome(t)}</span>)}</div>
+          <MossaEx key={pz.id} ex={pz} value={stato} onChange={esito} locked={false} />
+          {stato && (
+            <div className="row" style={{ marginTop: 12 }}>
+              <button className="btn" disabled={busy} onClick={carica}>Prossimo problema</button>
+              {stato !== "ok" && <button className="btn ghost" onClick={() => setSol(true)}>Mostra la soluzione</button>}
+              <a className="btn ghost" href={"https://lichess.org/training/" + pz.id} target="_blank" rel="noopener">Apri su Lichess</a>
+            </div>
+          )}
+          {sol && <p className="sol"><b>Soluzione:</b> {pz.soluzione.map(sanIt).join("  ")}</p>}
+        </div>
+      )}
     </div>
   );
 }
@@ -1949,7 +2411,7 @@ function Opzioni({ data, apply, notify, mode, user, auth }) {
       </details>
 
       <h2 className="sec">Azzera</h2>
-      <button className="btn danger" onClick={() => { if (confirm("Azzerare tutti i risultati, gli sblocchi e la serie di studio? Le lezioni restano.")) apply({ progress: null, sblocchi: null, attivita: null }); }}>Azzera i progressi</button>
+      <button className="btn danger" onClick={() => { if (confirm("Azzerare tutti i risultati, gli sblocchi e la serie di studio? Le lezioni restano.")) apply({ progress: null, sblocchi: null, attivita: null, tattica: null }); }}>Azzera i progressi</button>
       <p className="muted small" style={{ marginTop: 30 }}>Gradus, versione contenuti {SEED_VERSION}.</p>
     </>
   );
@@ -2049,13 +2511,14 @@ function App() {
   if (mode === "cloud" && !user) return <Login auth={fb.current.auth} />;
   if (!data) return <div className="center"><div className="brand" style={{ fontSize: 36 }}><Logo />Gradus</div><p className="muted">Caricamento…</p></div>;
 
-  const tab = ["area", "lezione"].includes(route.name) ? "aree" : route.name;
+  const tab = ["area", "lezione", "tattica"].includes(route.name) ? "aree" : route.name;
   let page;
   switch (route.name) {
     case "aree": page = <Aree data={data} />; break;
     case "area": page = <Area key={route.param} data={data} id={decodeURIComponent(route.param)} apply={apply} />; break;
     case "lezione": page = <Lezione key={route.param} data={data} id={decodeURIComponent(route.param)} apply={apply} notify={notify} />; break;
     case "ripasso": page = <Ripasso data={data} apply={apply} notify={notify} />; break;
+    case "tattica": page = <Tattica data={data} apply={apply} />; break;
     case "contenuti": page = <Contenuti key={route.param} data={data} param={route.param} apply={apply} notify={notify} />; break;
     case "opzioni": page = <Opzioni data={data} apply={apply} notify={notify} mode={mode} user={user} auth={fb.current && fb.current.auth} />; break;
     default: page = <Oggi data={data} />;
